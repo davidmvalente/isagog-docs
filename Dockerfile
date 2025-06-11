@@ -17,6 +17,8 @@ RUN poetry config virtualenvs.create false
 # Copy poetry files
 COPY pyproject.toml poetry.lock* ./
 
+RUN touch README.md
+
 # Install dependencies
 RUN poetry install --no-interaction --no-ansi
 
