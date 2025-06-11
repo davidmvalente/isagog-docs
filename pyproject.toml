@@ -14,7 +14,7 @@ dependencies = [
     "aiofiles (>=24.1.0,<25.0.0)",
     "python-multipart (>=0.0.20,<0.0.21)"
 ]
-package-mode = "false"
+package-mode = false
 
 
 [build-system]
