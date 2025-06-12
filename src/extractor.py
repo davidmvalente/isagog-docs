@@ -18,7 +18,7 @@ from haystack.components.validators import JsonSchemaValidator
 from haystack.dataclasses import ChatMessage
 from haystack.utils import Secret
 
-from models import KnowledgeStub, Entities, Relations
+from models import KnowledgeStub, Entity, Relations
 
 logger = logging.getLogger(__name__)
 
@@ -208,9 +208,13 @@ class KnowledgeStubExtractor:
         """
         try:
             # Instantiate Entity and Relation models from validated dictionaries
-            entities = Entities.model_validate_json(entities_json)
             relations = Relations.model_validate_json(relations_json)
-            
+            entities = list()
+            for relation in relations.relations:
+                entities.append(relation.subject)
+                entities.append(relation.argument)
+
+            entities = list(set(entities))
             # Instantiate KnowledgeStub model
             return KnowledgeStub(entities=entities, relations=relations)   
         
@@ -232,31 +236,25 @@ class KnowledgeStubExtractor:
                 if resultset.get("validation_errors"):
                     logger.warning(f"Pipeline returned validation errors: {resultset.get('validation_errors')}")
             
+
+            logger.info(f"Pipeline results: {result}")
             valid_relations_messages = result['relation_validator']["validated"]
-            valid_entities_messages = result['entity_validator']["validated"]
+            #valid_entities_messages = result['entity_validator']["validated"]
 
             if not valid_relations_messages:
                 logger.warning("No valid relations found")
             else:
-                _relations = valid_relations_messages[0]._content.text
+                _relations = valid_relations_messages[0]._content[0].text
                 logger.info(f"Relations JSON: {_relations}")
 
-            if not valid_entities_messages:
-                logger.warning("No valid entities found")
-            else: 
-                _entities = valid_entities_messages[0]._content.text
-                logger.info(f"Entities JSON: {_entities}")
+            # if not valid_entities_messages:
+            #     logger.warning("No valid entities found")
+            # else: 
+            #     _entities = valid_entities_messages[0]._content.text
+            #     logger.info(f"Entities JSON: {_entities}")
 
-            return self._to_KnowledgeStub(_entities, _relations)
-
-            valid_relations = result['e']].get("validated", [])
-            logger.info(f"Valid relations: {valid_relations}")
-            validation_errors = result.get("relation_validator", {}).get("validation_errors", [])
-            if validation_errors:
-                logger.warning(f"Relation validation errors: {validation_errors}")
-          
-            return self._to_KnowledgeStub(valid_entities[0], valid_relations[0])
+            return self._to_KnowledgeStub("", _relations)
 
         except Exception as e:
-            logger.error(f"Extract failed for {path}: {e}", stack_info=True)
+            logger.error(f"Extract failed for {path}: {e}")
             raise e from None
