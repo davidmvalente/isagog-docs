@@ -23,7 +23,6 @@ services:
       - ./uploads:/app/uploads
     environment:
       - MONGODB_URI=mongodb://mongo:27017/
-      - OPENROUTER_MODEL=gpt-4
       - UPLOADS_DIR=/app/uploads
     secrets:
       - OPENROUTER_API_KEY
