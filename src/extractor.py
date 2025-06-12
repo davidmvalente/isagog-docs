@@ -239,7 +239,7 @@ class KnowledgeStubExtractor:
             if validation_errors:
                 logger.warning(f"Relation validation errors: {validation_errors}")
           
-            return self.to_KnowledgeStub(valid_entities, valid_relations)
+            return self._to_KnowledgeStub(valid_entities, valid_relations)
 
         except Exception as e:
             logger.error(f"Extract failed for {path}: {e}", stack_info=True)
