@@ -25,7 +25,6 @@ class FileHandler(FileSystemEventHandler):
         """Wrapper for error handling"""
         try:
             if self._is_valid_document(file_path):
-                logger.info(f"Processing document: {file_path.name}")
                 time.sleep(0.5) # Wait a little while to avoid race conditions writing the file
                 self.processor.process_document(file_path)
             else:
