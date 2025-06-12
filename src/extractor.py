@@ -208,7 +208,7 @@ class KnowledgeStubExtractor:
         """
         try:
             # Instantiate Entity and Relation models from validated dictionaries
-            entities = Entities.model_validate_json(valid_relations._content.text)
+            entities = Entities.model_validate_json(valid_entities._content.text)
             relations = Relations.model_validate_json(valid_relations._content.text)
             
             # Instantiate KnowledgeStub model
@@ -240,7 +240,7 @@ class KnowledgeStubExtractor:
             if validation_errors:
                 logger.warning(f"Relation validation errors: {validation_errors}")
           
-            return self._to_KnowledgeStub(valid_entities, valid_relations)
+            return self._to_KnowledgeStub(valid_entities[0], valid_relations[0])
 
         except Exception as e:
             logger.error(f"Extract failed for {path}: {e}", stack_info=True)
