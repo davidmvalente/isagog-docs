@@ -5,9 +5,9 @@ from typing import Optional
 from haystack import Pipeline
 from haystack.components.converters import (
     TextFileToDocument,
-    PDFFileToDocument,
-    DocxFileToDocument,
-    JSONFileToDocument,
+    PyPDFToDocument,
+    DOCXToDocument,
+    CSVToDocument,
 )
 from haystack.components.generators import OpenRouterChatGenerator
 from haystack.components.builders import PromptBuilder
@@ -125,9 +125,9 @@ class KnowledgeStubExtractor:
         
         # Add file converters
         pipeline.add_component("text_converter", TextFileToDocument())
-        pipeline.add_component("pdf_converter", PDFFileToDocument())
-        pipeline.add_component("docx_converter", DocxFileToDocument())
-        pipeline.add_component("json_converter", JSONFileToDocument())
+        pipeline.add_component("pdf_converter", PyPDFToDocument())
+        pipeline.add_component("docx_converter", DOCXToDocument())
+        pipeline.add_component("csv_converter", CSVToDocument())
         pipeline.add_component("cleaner", DocumentCleaner())
         
         # Add entity extraction components
@@ -145,7 +145,7 @@ class KnowledgeStubExtractor:
         pipeline.connect("text_converter.documents", "cleaner.documents")
         pipeline.connect("pdf_converter.documents", "cleaner.documents")
         pipeline.connect("docx_converter.documents", "cleaner.documents")
-        pipeline.connect("json_converter.documents", "cleaner.documents")
+        pipeline.connect("csv_converter.documents", "cleaner.documents")
         
         # Entity extraction chain
         pipeline.connect("cleaner.documents", "entity_prompt.text")
@@ -177,9 +177,9 @@ class KnowledgeStubExtractor:
                     result = self.pipeline.run(
                         {"docx_converter": {"sources": [str(path)]}}
                     )
-                case ".json":
+                case ".csv":
                     result = self.pipeline.run(
-                        {"json_converter": {"sources": [str(path)]}}
+                        {"csv_converter": {"sources": [str(path)]}}
                     )
                 case _:
                     logger.error(f"Unsupported file type: {path.suffix}")
