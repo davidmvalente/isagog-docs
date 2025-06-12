@@ -53,9 +53,9 @@ class DocumentProcessor:
 
         try:
             logger.error(f"Failed to process {document_id}: {error}", stack_info=True)
-            self.collection.update_one(
+            self.collection.replace_one(
                 {"_id": document_id},
-                {"$set": {"processing_status": "failed", "metadata.error": error}},
+                {"$set": {"processing_status": "failed", "error": error}},
                 upsert=True
             )
             # self.db.processing_errors.insert_one(error_record)

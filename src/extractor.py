@@ -18,7 +18,7 @@ from haystack.components.validators import JsonSchemaValidator
 from haystack.dataclasses import ChatMessage
 from haystack.utils import Secret
 
-from models import KnowledgeStub, Entity, Relations
+from models import KnowledgeStub, Entity, Entities, Relations
 
 logger = logging.getLogger(__name__)
 
@@ -214,9 +214,10 @@ class KnowledgeStubExtractor:
                 entities.append(relation.subject)
                 entities.append(relation.argument)
 
-            entities = list(set(entities))
+            # TODO: Make sure entities are unique entities = list(set(entities))
+            full_entities = Entities(entities=entities)
             # Instantiate KnowledgeStub model
-            return KnowledgeStub(entities=entities, relations=relations)   
+            return KnowledgeStub(entities=full_entities, relations=relations)   
         
         except Exception as e:
             # Log specific Pydantic validation errors if possible
