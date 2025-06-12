@@ -20,11 +20,11 @@ from models import Analysis
 logger = logging.getLogger(__name__)
 
 class KnowledgeStubExtractor:
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, model: str = "gpt-4"):
         # Initialize components
         self.generator = OpenRouterChatGenerator(
             api_key=Secret.from_token(api_key),
-            model="gpt-4",
+            model=model,
             generation_kwargs={
                 "temperature": 0.0,
                 "max_tokens": 10000,

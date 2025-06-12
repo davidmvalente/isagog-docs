@@ -7,14 +7,11 @@ logger = logging.getLogger(__name__)
 class Config:
     def __init__(self):
         self.uploads_dir = os.getenv("UPLOADS_DIR", "/app/uploads")
-        self.mongo_uri = secret_or_env("MONGO_URI")
-        self.openrouter_api_key = secret_or_env("OPENROUTER_API_KEY", )
+        self.mongo_uri = secret_or_env("MONGO_URI",_raise =True)
+        self.openrouter_api_key = secret_or_env("OPENROUTER_API_KEY", _raise = True)
         self.openrouter_model = os.getenv("OPENROUTER_MODEL", "gpt-4")
         self.db_name = "maxxi"
         self.collection_name = "docs"
-        
-        if not self.openai_api_key:
-            raise ValueError("OPENAI_API_KEY environment variable required")
         
 
 def secret_or_env(secret_name: str, file_paths: Optional[list] = None, _raise: bool = False) -> str | None:
