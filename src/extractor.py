@@ -194,7 +194,7 @@ class KnowledgeStubExtractor:
         
         return pipeline
 
-    def _to_KnowledgeStub(self, valid_entities: List[dict], valid_relations: List[dict]) -> KnowledgeStub:
+    def _to_KnowledgeStub(self, entities_json: str, relations_json: str) -> KnowledgeStub:
         """
         Instantiates pydantic Entity and Relation models from validated dictionary data,
         then wraps them in an KnowledgeStub object.
@@ -208,8 +208,8 @@ class KnowledgeStubExtractor:
         """
         try:
             # Instantiate Entity and Relation models from validated dictionaries
-            entities = Entities.model_validate_json(valid_entities._content.text)
-            relations = Relations.model_validate_json(valid_relations._content.text)
+            entities = Entities.model_validate_json(entities_json)
+            relations = Relations.model_validate_json(relations_json)
             
             # Instantiate KnowledgeStub model
             return KnowledgeStub(entities=entities, relations=relations)   
@@ -228,13 +228,28 @@ class KnowledgeStubExtractor:
                 {"file_type_router": {"sources": [str(path)]}}
             )
 
-            valid_entities = result.get("entity_validator", {}).get("validated", [])
-            logger.info(f"Valid entities: {valid_entities}")
-            validation_errors = result.get("entity_validator", {}).get("validation_errors", [])
-            if validation_errors:
-                logger.warning(f"Entity validation errors: {validation_errors}")
+            for resultset in result.values(): 
+                if resultset.get("validation_errors"):
+                    logger.warning(f"Pipeline returned validation errors: {resultset.get('validation_errors')}")
+            
+            valid_relations_messages = result['relation_validator']["validated"]
+            valid_entities_messages = result['entity_validator']["validated"]
 
-            valid_relations = result.get("relation_validator", {}).get("validated", [])
+            if not valid_relations_messages:
+                logger.warning("No valid relations found")
+            else:
+                _relations = valid_relations_messages[0]._content.text
+                logger.info(f"Relations JSON: {_relations}")
+
+            if not valid_entities_messages:
+                logger.warning("No valid entities found")
+            else: 
+                _entities = valid_entities_messages[0]._content.text
+                logger.info(f"Entities JSON: {_entities}")
+
+            return self._to_KnowledgeStub(_entities, _relations)
+
+            valid_relations = result['e']].get("validated", [])
             logger.info(f"Valid relations: {valid_relations}")
             validation_errors = result.get("relation_validator", {}).get("validation_errors", [])
             if validation_errors:
