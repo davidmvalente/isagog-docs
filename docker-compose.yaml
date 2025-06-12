@@ -30,7 +30,7 @@ services:
     image: mongo:latest
     restart: unless-stopped
     volumes:
-      - ./mongo/data:/data/db
+      - /sata/experiments/mongo/data:/data/db
     command: [--auth]
 
 secrets:
