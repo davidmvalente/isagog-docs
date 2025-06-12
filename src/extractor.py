@@ -9,7 +9,7 @@ from haystack.components.converters import (
     DOCXToDocument,
     CSVToDocument,
 )
-from haystack.components.generators import OpenRouterChatGenerator
+from haystack_integrations.components.generators.openrouter import OpenRouterChatGenerator
 from haystack.components.builders import PromptBuilder
 from haystack.components.preprocessors import DocumentCleaner
 from haystack.components.validators import JsonSchemaValidator

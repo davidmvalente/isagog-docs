@@ -5,7 +5,7 @@ from pathlib import Path
 from pymongo import MongoClient
 
 from config import Config
-from extractor import KnowledgeExtractor
+from extractor import KnowledgeStubExtractor
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ class DocumentProcessor:
         self.db = self.mongo_client[config.db_name]
         self.collection = self.db[config.collection_name]
         
-        self.extractor = KnowledgeExtractor(config.openrouter_api_key, 
+        self.extractor = KnowledgeStubExtractor(config.openrouter_api_key, 
                                             config.openrouter_model)
         
     
