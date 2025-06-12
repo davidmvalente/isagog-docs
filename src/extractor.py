@@ -10,9 +10,12 @@ from haystack.components.converters import (
     CSVToDocument,
 )
 from haystack_integrations.components.generators.openrouter import OpenRouterChatGenerator
-from haystack.components.builders import PromptBuilder
+from haystack.components.builders import ChatPromptBuilder
 from haystack.components.preprocessors import DocumentCleaner
+from haystack.components.routers import FileTypeRouter
+from haystack.components.joiners import DocumentJoiner
 from haystack.components.validators import JsonSchemaValidator
+from haystack.dataclasses import ChatMessage
 from haystack.utils import Secret
 
 from models import Analysis
@@ -21,16 +24,9 @@ logger = logging.getLogger(__name__)
 
 class KnowledgeStubExtractor:
     def __init__(self, api_key: str, model: str = "gpt-4"):
-        # Initialize components
-        self.generator = OpenRouterChatGenerator(
-            api_key=Secret.from_token(api_key),
-            model=model,
-            generation_kwargs={
-                "temperature": 0.0,
-                "max_tokens": 10000,
-                "response_format": {"type": "json_object"}
-            }
-        )
+        # Initialize  
+        self.api_key = Secret.from_token(api_key)
+        self.model = model
         
         # Define JSON schemas
         self.entity_schema = {
@@ -86,6 +82,17 @@ class KnowledgeStubExtractor:
         # Create unified pipeline
         self.pipeline = self._create_pipeline()
 
+    def _generator_factory(self) -> OpenRouterChatGenerator:
+        return OpenRouterChatGenerator(
+            api_key=self.api_key,
+            model=self.model,
+            generation_kwargs={
+                "temperature": 0.0,
+                "max_tokens": 10000,
+                "response_format": {"type": "json_object"}
+            }
+        )
+
     def _create_pipeline(self) -> Pipeline:
         # Define prompts
         entity_prompt = """
@@ -124,38 +131,56 @@ class KnowledgeStubExtractor:
         pipeline = Pipeline()
         
         # Add file converters
-        pipeline.add_component("text_converter", TextFileToDocument())
+        # File type routing
+        file_type_router = FileTypeRouter(mime_types=["text/plain", "application/pdf", "text/markdown"])
+        pipeline.add_component("file_type_router", file_type_router)
+
+        # Filetype convertor
+        pipeline.add_component("txt_converter", TextFileToDocument())
         pipeline.add_component("pdf_converter", PyPDFToDocument())
-        pipeline.add_component("docx_converter", DOCXToDocument())
-        pipeline.add_component("csv_converter", CSVToDocument())
-        pipeline.add_component("cleaner", DocumentCleaner())
+        # TODO: pipeline.add_component("docx_converter", DOCXToDocument())
+        # TODO: pipeline.add_component("csv_converter", CSVToDocument())
+
+        # Preprocessing components
+        pipeline.add_component("document_joiner", DocumentJoiner())
+        pipeline.add_component("document_cleaner", DocumentCleaner())
+
         
         # Add entity extraction components
-        pipeline.add_component("entity_prompt", PromptBuilder(template=entity_prompt))
-        pipeline.add_component("entity_generator", self.generator)
-        pipeline.add_component("entity_validator", JsonSchemaValidator(schema=self.entity_schema))
+        pipeline.add_component("entity_prompt", 
+                               ChatPromptBuilder(template=[ChatMessage.from_user(entity_prompt)]))
+        pipeline.add_component("entity_generator", self._generator_factory())
+        pipeline.add_component("entity_validator", JsonSchemaValidator(json_schema=self.entity_schema))
         
         # Add relation extraction components
-        pipeline.add_component("relation_prompt", PromptBuilder(template=relation_prompt))
-        pipeline.add_component("relation_generator", self.generator)
-        pipeline.add_component("relation_validator", JsonSchemaValidator(schema=self.relation_schema))
+        pipeline.add_component("relation_prompt",
+                                ChatPromptBuilder(template=[ChatMessage.from_user(relation_prompt)]))
+        pipeline.add_component("relation_generator", self._generator_factory())
+        pipeline.add_component("relation_validator", JsonSchemaValidator(json_schema=self.relation_schema))
                 
         # Connect the components
-        # File conversion to cleaner
-        pipeline.connect("text_converter.documents", "cleaner.documents")
-        pipeline.connect("pdf_converter.documents", "cleaner.documents")
-        pipeline.connect("docx_converter.documents", "cleaner.documents")
-        pipeline.connect("csv_converter.documents", "cleaner.documents")
+        # Router to Converters
+        pipeline.connect("file_type_router.text/plain", "txt_converter.sources")
+        pipeline.connect("file_type_router.application/pdf", "pdf_converter.sources")
+        #TODO: pipeline.connect("file_type_router.text/markdown", "markdown_converter.sources")
+
+        # Join documents from different possible sources
+        pipeline.connect("txt_converter", "document_joiner.documents")
+        pipeline.connect("pdf_converter", "document_joiner.documents")
+        #TODO: pipeline.connect("markdown_converter", "document_joiner.documents_3")
+
+        # Clean
+        pipeline.connect("document_joiner", "document_cleaner")
         
         # Entity extraction chain
-        pipeline.connect("cleaner.documents", "entity_prompt.text")
-        pipeline.connect("entity_prompt", "entity_generator")
+        pipeline.connect("document_cleaner.documents", "entity_prompt.text")
+        pipeline.connect("entity_prompt.prompt", "entity_generator.messages")
         pipeline.connect("entity_generator.replies", "entity_validator")
         
         # Relation extraction chain (uses both cleaned text and extracted entities)
-        pipeline.connect("cleaner.documents", "relation_prompt.text")
+        pipeline.connect("document_cleaner.documents", "relation_prompt.text")
         pipeline.connect("entity_validator.validated", "relation_prompt.entities")
-        pipeline.connect("relation_prompt", "relation_generator")
+        pipeline.connect("relation_prompt.prompt", "relation_generator.messages")
         pipeline.connect("relation_generator.replies", "relation_validator")
         
         return pipeline
@@ -163,28 +188,11 @@ class KnowledgeStubExtractor:
     def extract(self, path: Path) -> Optional[Analysis]:
 
         try:
-            # Select the appropriate converter based on file type
-            match path.suffix.lower():
-                case ".txt":
-                    result = self.pipeline.run(
-                        {"text_converter": {"sources": [str(path)]}}
-                    )
-                case ".pdf":
-                    result = self.pipeline.run(
-                        {"pdf_converter": {"sources": [str(path)]}}
-                    )
-                case ".docx":
-                    result = self.pipeline.run(
-                        {"docx_converter": {"sources": [str(path)]}}
-                    )
-                case ".csv":
-                    result = self.pipeline.run(
-                        {"csv_converter": {"sources": [str(path)]}}
-                    )
-                case _:
-                    logger.error(f"Unsupported file type: {path.suffix}")
-                    return None
-            
+
+            result = self.pipeline.run(
+                {"file_type_router": {"sources": [str(path)]}}
+            )
+
             return Analysis(
                 entities=result.get("entity_validator", {}).get("validated", {}),
                 relations=result.get("relation_validator", {}).get("validated", {})
