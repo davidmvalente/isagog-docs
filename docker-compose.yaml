@@ -25,7 +25,9 @@ services:
       - MONGODB_URI=mongodb://mongo:27017/
       - OPENROUTER_MODEL=gpt-4
       - UPLOADS_DIR=/app/uploads
-  
+    secrets:
+      - OPENROUTER_API_KEY
+
   mongo:
     image: mongo:latest
     restart: unless-stopped
@@ -34,5 +36,5 @@ services:
     command: [--auth]
 
 secrets:
-  openrouter_api_key:
+  OPENROUTER_API_KEY:
     file: ~/.secrets/DG_OPENROUTER_API_KEY
