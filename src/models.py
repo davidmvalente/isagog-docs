@@ -11,6 +11,12 @@ class Relation(BaseModel):
     argument: Entity
     context: str
 
-class KnowledgeStub(BaseModel):
-    entities: List[Entity]
+class Relations(BaseModel):
     relations: List[Relation]
+
+class Entities(BaseModel):
+    entities: List[Entity]
+
+class KnowledgeStub(BaseModel):
+    entities: Entities
+    relations: Relations

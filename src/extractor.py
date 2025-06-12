@@ -18,7 +18,7 @@ from haystack.components.validators import JsonSchemaValidator
 from haystack.dataclasses import ChatMessage
 from haystack.utils import Secret
 
-from models import KnowledgeStub, Entity, Relation
+from models import KnowledgeStub, Entities, Relations
 
 logger = logging.getLogger(__name__)
 
@@ -207,13 +207,12 @@ class KnowledgeStubExtractor:
             An KnowledgeStub model containing lists of Entity and Relation models.
         """
         try:
-            # Instantiate Entity models from dictionaries
-            entities = [Entity(**e) for e in valid_entities]
-            # Instantiate Relation models from dictionaries
-            # Pydantic will automatically validate nested Entity objects here
-            relations = [Relation(**r) for r in valid_relations]
-
-            return KnowledgeStub(entities, relations)    
+            # Instantiate Entity and Relation models from validated dictionaries
+            entities = Entities.model_validate_json(valid_relations._content.text)
+            relations = Relations.model_validate_json(valid_relations._content.text)
+            
+            # Instantiate KnowledgeStub model
+            return KnowledgeStub(entities=entities, relations=relations)   
         
         except Exception as e:
             # Log specific Pydantic validation errors if possible
@@ -230,11 +229,13 @@ class KnowledgeStubExtractor:
             )
 
             valid_entities = result.get("entity_validator", {}).get("validated", [])
+            logger.info(f"Valid entities: {valid_entities}")
             validation_errors = result.get("entity_validator", {}).get("validation_errors", [])
             if validation_errors:
                 logger.warning(f"Entity validation errors: {validation_errors}")
 
             valid_relations = result.get("relation_validator", {}).get("validated", [])
+            logger.info(f"Valid relations: {valid_relations}")
             validation_errors = result.get("relation_validator", {}).get("validation_errors", [])
             if validation_errors:
                 logger.warning(f"Relation validation errors: {validation_errors}")
