@@ -18,7 +18,7 @@ from haystack.components.validators import JsonSchemaValidator
 from haystack.dataclasses import ChatMessage
 from haystack.utils import Secret
 
-from models import KnowledgeStub, Entity, Relation
+from models import KnowledgeStub, Entities, Relations
 
 logger = logging.getLogger(__name__)
 
@@ -194,7 +194,7 @@ class KnowledgeStubExtractor:
         
         return pipeline
 
-    def _to_KnowledgeStub(self, valid_entities: List[dict], valid_relations: List[dict]) -> KnowledgeStub:
+    def _to_KnowledgeStub(self, entities_json: str, relations_json: str) -> KnowledgeStub:
         """
         Instantiates pydantic Entity and Relation models from validated dictionary data,
         then wraps them in an KnowledgeStub object.
@@ -207,13 +207,12 @@ class KnowledgeStubExtractor:
             An KnowledgeStub model containing lists of Entity and Relation models.
         """
         try:
-            # Instantiate Entity models from dictionaries
-            entities = [Entity(**e) for e in valid_entities]
-            # Instantiate Relation models from dictionaries
-            # Pydantic will automatically validate nested Entity objects here
-            relations = [Relation(**r) for r in valid_relations]
-
-            return KnowledgeStub(entities, relations)    
+            # Instantiate Entity and Relation models from validated dictionaries
+            entities = Entities.model_validate_json(entities_json)
+            relations = Relations.model_validate_json(relations_json)
+            
+            # Instantiate KnowledgeStub model
+            return KnowledgeStub(entities=entities, relations=relations)   
         
         except Exception as e:
             # Log specific Pydantic validation errors if possible
@@ -229,17 +228,34 @@ class KnowledgeStubExtractor:
                 {"file_type_router": {"sources": [str(path)]}}
             )
 
-            valid_entities = result.get("entity_validator", {}).get("validated", [])
-            validation_errors = result.get("entity_validator", {}).get("validation_errors", [])
-            if validation_errors:
-                logger.warning(f"Entity validation errors: {validation_errors}")
+            for resultset in result.values(): 
+                if resultset.get("validation_errors"):
+                    logger.warning(f"Pipeline returned validation errors: {resultset.get('validation_errors')}")
+            
+            valid_relations_messages = result['relation_validator']["validated"]
+            valid_entities_messages = result['entity_validator']["validated"]
 
-            valid_relations = result.get("relation_validator", {}).get("validated", [])
+            if not valid_relations_messages:
+                logger.warning("No valid relations found")
+            else:
+                _relations = valid_relations_messages[0]._content.text
+                logger.info(f"Relations JSON: {_relations}")
+
+            if not valid_entities_messages:
+                logger.warning("No valid entities found")
+            else: 
+                _entities = valid_entities_messages[0]._content.text
+                logger.info(f"Entities JSON: {_entities}")
+
+            return self._to_KnowledgeStub(_entities, _relations)
+
+            valid_relations = result['e']].get("validated", [])
+            logger.info(f"Valid relations: {valid_relations}")
             validation_errors = result.get("relation_validator", {}).get("validation_errors", [])
             if validation_errors:
                 logger.warning(f"Relation validation errors: {validation_errors}")
           
-            return self._to_KnowledgeStub(valid_entities, valid_relations)
+            return self._to_KnowledgeStub(valid_entities[0], valid_relations[0])
 
         except Exception as e:
             logger.error(f"Extract failed for {path}: {e}", stack_info=True)
