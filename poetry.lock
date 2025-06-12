@@ -907,6 +907,21 @@ realtime = ["websockets (>=13,<16)"]
 voice-helpers = ["numpy (>=2.0.2)", "sounddevice (>=0.5.1)"]
 
 [[package]]
+name = "openrouter-haystack"
+version = "0.1.0"
+description = ""
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "openrouter_haystack-0.1.0-py3-none-any.whl", hash = "sha256:04b78e7da18f395697dff47b8dabb47078fa09ee740b04dfc737fda6b88234ca"},
+    {file = "openrouter_haystack-0.1.0.tar.gz", hash = "sha256:5a39e19fc8651c7a988453483ca7f7547e4e45ab8fd8b00fe3f5900aeda67554"},
+]
+
+[package.dependencies]
+haystack-ai = ">=2.13.1"
+
+[[package]]
 name = "posthog"
 version = "4.8.0"
 description = "Integrate PostHog into any python application."
@@ -1626,4 +1641,4 @@ watchmedo = ["PyYAML (>=3.10)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11"
-content-hash = "db29a4c14b3212cb30fd9fbbcf829d37c2c62160147cfc4373a7112e4b54e802"
+content-hash = "42beaee2cdd48be57bb7aa21f6ba787fc7966439b4a11419d40cf8eb47596d33"
