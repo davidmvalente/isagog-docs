@@ -20,7 +20,7 @@ class DocumentProcessor:
                                             config.openrouter_model)
         
     
-    async def process_document(self, file_path: Path) -> bool:
+    def process_document(self, file_path: Path) -> bool:
         document_id = file_path.stem
         start_time = time.time()
         

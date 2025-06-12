@@ -44,18 +44,18 @@ class FileHandler(FileSystemEventHandler):
         logger.info(f"Detected new document: {file_path.name}")
         self._process_file(file_path)
 
-    def on_modified(self, event):
-        """Handle file modifications"""
-        if event.is_directory:
-            return
+    # def on_modified(self, event):
+    #     """Handle file modifications"""
+    #     if event.is_directory:
+    #         return
 
-        file_path = Path(event.src_path)
-        if self.skip_existing and file_path.name in self.existing_files:
-            logger.debug(f"Skipping modification of existing file: {file_path.name}")
-            return
+    #     file_path = Path(event.src_path)
+    #     if self.skip_existing and file_path.name in self.existing_files:
+    #         logger.debug(f"Skipping modification of existing file: {file_path.name}")
+    #         return
             
-        logger.info(f"Detected modified document: {file_path.name}")
-        self._process_file(file_path)
+    #     logger.info(f"Detected modified document: {file_path.name}")
+    #     self._process_file(file_path)
 
     def _is_valid_document(self, file_path: Path) -> bool:
         """Validate document filename and extension"""
