@@ -148,13 +148,15 @@ class KnowledgeStubExtractor:
         
         # Add entity extraction components
         pipeline.add_component("entity_prompt", 
-                               ChatPromptBuilder(template=[ChatMessage.from_user(entity_prompt)]))
+                               ChatPromptBuilder(template=[ChatMessage.from_user(entity_prompt)],
+                                                 required_variables="*"))
         pipeline.add_component("entity_generator", self._generator_factory())
         pipeline.add_component("entity_validator", JsonSchemaValidator(json_schema=self.entity_schema))
         
         # Add relation extraction components
         pipeline.add_component("relation_prompt",
-                                ChatPromptBuilder(template=[ChatMessage.from_user(relation_prompt)]))
+                                ChatPromptBuilder(template=[ChatMessage.from_user(relation_prompt)],
+                                                  required_variables="*"))
         pipeline.add_component("relation_generator", self._generator_factory())
         pipeline.add_component("relation_validator", JsonSchemaValidator(json_schema=self.relation_schema))
                 
