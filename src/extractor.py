@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 
-from typing import Optional
+from typing import Optional, List
 from haystack import Pipeline
 from haystack.components.converters import (
     TextFileToDocument,
@@ -18,7 +18,7 @@ from haystack.components.validators import JsonSchemaValidator
 from haystack.dataclasses import ChatMessage
 from haystack.utils import Secret
 
-from models import Analysis, Entity, Relation
+from models import KnowledgeStub, Entity, Relation
 
 logger = logging.getLogger(__name__)
 
@@ -151,14 +151,14 @@ class KnowledgeStubExtractor:
         pipeline.add_component("document_cleaner", DocumentCleaner())
 
         
-        # Add entity extraction components
+        # Add entity KnowledgeStub components
         pipeline.add_component("entity_prompt", 
                                ChatPromptBuilder(template=[ChatMessage.from_user(entity_prompt)],
                                                  required_variables="*"))
         pipeline.add_component("entity_generator", self._generator_factory())
         pipeline.add_component("entity_validator", JsonSchemaValidator(json_schema=self.entity_schema))
         
-        # Add relation extraction components
+        # Add relation KnowledgeStub components
         pipeline.add_component("relation_prompt",
                                 ChatPromptBuilder(template=[ChatMessage.from_user(relation_prompt)],
                                                   required_variables="*"))
@@ -181,12 +181,12 @@ class KnowledgeStubExtractor:
         # Clean
         pipeline.connect("document_joiner", "document_cleaner")
         
-        # Entity extraction chain
+        # Entity KnowledgeStub chain
         pipeline.connect("document_cleaner.documents", "entity_prompt.text")
         pipeline.connect("entity_prompt.prompt", "entity_generator.messages")
         pipeline.connect("entity_generator.replies", "entity_validator")
         
-        # Relation extraction chain (uses both cleaned text and extracted entities)
+        # Relation KnowledgeStub chain (uses both cleaned text and extracted entities)
         pipeline.connect("document_cleaner.documents", "relation_prompt.text")
         pipeline.connect("entity_validator.validated", "relation_prompt.entities")
         pipeline.connect("relation_prompt.prompt", "relation_generator.messages")
@@ -194,7 +194,34 @@ class KnowledgeStubExtractor:
         
         return pipeline
 
-    def extract(self, path: Path) -> Optional[Analysis]:
+    def _to_KnowledgeStub(self, valid_entities: List[dict], valid_relations: List[dict]) -> KnowledgeStub:
+        """
+        Instantiates pydantic Entity and Relation models from validated dictionary data,
+        then wraps them in an KnowledgeStub object.
+
+        Args:
+            valid_entities: A list of dictionaries representing validated entities.
+            valid_relations: A list of dictionaries representing validated relations.
+
+        Returns:
+            An KnowledgeStub model containing lists of Entity and Relation models.
+        """
+        try:
+            # Instantiate Entity models from dictionaries
+            entities = [Entity(**e) for e in valid_entities]
+            # Instantiate Relation models from dictionaries
+            # Pydantic will automatically validate nested Entity objects here
+            relations = [Relation(**r) for r in valid_relations]
+
+            return KnowledgeStub(entities, relations)    
+        
+        except Exception as e:
+            # Log specific Pydantic validation errors if possible
+            logger.error(f"Failed to instantiate Pydantic models: {e}", stack_info=True)
+            raise ValueError("Data did not conform to Pydantic models.") from e
+
+
+    def extract(self, path: Path) -> Optional[KnowledgeStub]:
 
         try:
 
@@ -212,10 +239,7 @@ class KnowledgeStubExtractor:
             if validation_errors:
                 logger.warning(f"Relation validation errors: {validation_errors}")
           
-            return Analysis(
-                entities=[ Entity(e) for e in valid_entities ],
-                relations=[ Relation(r) for r in valid_relations ]
-            )
+            return self.to_KnowledgeStub(valid_entities, valid_relations)
 
         except Exception as e:
             logger.error(f"Extract failed for {path}: {e}", stack_info=True)
