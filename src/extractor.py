@@ -18,7 +18,7 @@ from haystack.components.validators import JsonSchemaValidator
 from haystack.dataclasses import ChatMessage
 from haystack.utils import Secret
 
-from models import Analysis
+from models import Analysis, Entity, Relation
 
 logger = logging.getLogger(__name__)
 
@@ -195,11 +195,21 @@ class KnowledgeStubExtractor:
                 {"file_type_router": {"sources": [str(path)]}}
             )
 
+            valid_entities = result.get("entity_validator", {}).get("validated", [])
+            validation_errors = result.get("entity_validator", {}).get("validation_errors", [])
+            if validation_errors:
+                logger.warning(f"Entity validation errors: {validation_errors}")
+
+            valid_relations = result.get("relation_validator", {}).get("validated", [])
+            validation_errors = result.get("relation_validator", {}).get("validation_errors", [])
+            if validation_errors:
+                logger.warning(f"Relation validation errors: {validation_errors}")
+          
             return Analysis(
-                entities=result.get("entity_validator", {}).get("validated", {}),
-                relations=result.get("relation_validator", {}).get("validated", {})
+                entities=[ Entity(e) for e in valid_entities ],
+                relations=[ Relation(r) for r in valid_relations ]
             )
 
         except Exception as e:
             logger.error(f"Processing failed for {path}: {e}", stack_info=True)
-            return None
+            raise e from None

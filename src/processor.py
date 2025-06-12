@@ -45,7 +45,7 @@ class DocumentProcessor:
         
         except Exception as e:
             logger.error(f"Failed to process {document_id}: {e}")
-            self._log_error(document_id, str(file_path), str(e))
+            self._log_error(document_id, str(e))
             return False
         
     def _log_error(self, document_id: str, error: str):
