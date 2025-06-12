@@ -1,5 +1,5 @@
 services:
-  api:
+  crud:
     build: .
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]    
     ports:
@@ -15,3 +15,24 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+  worker:
+    build: .
+    command: ["poetry", "run", "python3", "src/worker.py"]
+    volumes:
+      - ./uploads:/app/uploads
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/
+      - OPENROUTER_MODEL=gpt-4
+      - UPLOADS_DIR=/app/uploads
+  
+  mongo:
+    image: mongo:latest
+    restart: unless-stopped
+    volumes:
+      - ./mongo/data:/data/db
+    command: [--auth]
+
+secrets:
+  openrouter_api_key:
+    file: ~/.secrets/DG_OPENROUTER_API_KEY

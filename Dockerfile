@@ -25,4 +25,6 @@ RUN poetry install --no-interaction --no-ansi --no-root
 # Copy application code
 COPY main.py .
 
+COPY src /app/src
+
 
