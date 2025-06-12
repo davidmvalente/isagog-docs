@@ -1,14 +1,11 @@
 import time
 import logging
 from pathlib import Path
-from datetime import datetime
-from typing import Optional
 
 from pymongo import MongoClient
 
 from config import Config
 from extractor import KnowledgeExtractor
-from models import KnowledgeStub
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +36,7 @@ class DocumentProcessor:
                 {
                     "analysis": analysis.model_dump(),
                     "status": "ready"
-                }
+                },
                 upsert=True
             )
             

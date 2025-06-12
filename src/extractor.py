@@ -15,7 +15,7 @@ from haystack.components.preprocessors import DocumentCleaner
 from haystack.components.validators import JsonSchemaValidator
 from haystack.utils import Secret
 
-from models import Entity, Relation, Analysis, KnowledgeStub
+from models import Analysis
 
 logger = logging.getLogger(__name__)
 
