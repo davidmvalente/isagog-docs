@@ -20,16 +20,9 @@ COPY pyproject.toml poetry.lock* ./
 RUN touch README.md
 
 # Install dependencies
-RUN poetry install --no-interaction --no-ansi
+RUN poetry install --no-interaction --no-ansi --no-root
 
 # Copy application code
-COPY src .
+COPY main.py .
 
-# Create uploads directory
-RUN mkdir -p uploads
 
-# Expose port
-EXPOSE 8000
-
-# Run the application
-CMD ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "8000"]
