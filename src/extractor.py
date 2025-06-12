@@ -22,6 +22,8 @@ from models import Analysis, Entity, Relation
 
 logger = logging.getLogger(__name__)
 
+DOCX_MIMETYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"   
+
 class KnowledgeStubExtractor:
     def __init__(self, api_key: str, model: str = "gpt-4"):
         # Initialize  
@@ -132,13 +134,16 @@ class KnowledgeStubExtractor:
         
         # Add file converters
         # File type routing
-        file_type_router = FileTypeRouter(mime_types=["text/plain", "application/pdf", "text/markdown"])
+        file_type_router = FileTypeRouter(mime_types=["text/plain", 
+                                                      "application/pdf", 
+                                                      DOCX_MIMETYPE])
+        # TODO: Add "text/markdown" to the list of supported mime types
         pipeline.add_component("file_type_router", file_type_router)
 
         # Filetype convertor
         pipeline.add_component("txt_converter", TextFileToDocument())
         pipeline.add_component("pdf_converter", PyPDFToDocument())
-        # TODO: pipeline.add_component("docx_converter", DOCXToDocument())
+        pipeline.add_component("docx_converter", DOCXToDocument())
         # TODO: pipeline.add_component("csv_converter", CSVToDocument())
 
         # Preprocessing components
@@ -164,12 +169,14 @@ class KnowledgeStubExtractor:
         # Router to Converters
         pipeline.connect("file_type_router.text/plain", "txt_converter.sources")
         pipeline.connect("file_type_router.application/pdf", "pdf_converter.sources")
-        #TODO: pipeline.connect("file_type_router.text/markdown", "markdown_converter.sources")
+        pipeline.connect("file_type_router"+"."+DOCX_MIMETYPE, "docx_converter.sources")
+        #TODO: Add pipeline.connect("file_type_router.text/markdown", "markdown_converter.sources")
 
         # Join documents from different possible sources
         pipeline.connect("txt_converter", "document_joiner.documents")
         pipeline.connect("pdf_converter", "document_joiner.documents")
-        #TODO: pipeline.connect("markdown_converter", "document_joiner.documents_3")
+        pipeline.connect("docx_converter", "document_joiner.documents")
+        #TODO: Add pipeline.connect("markdown_converter", "document_joiner.documents_3")
 
         # Clean
         pipeline.connect("document_joiner", "document_cleaner")
@@ -211,5 +218,5 @@ class KnowledgeStubExtractor:
             )
 
         except Exception as e:
-            logger.error(f"Processing failed for {path}: {e}", stack_info=True)
+            logger.error(f"Extract failed for {path}: {e}", stack_info=True)
             raise e from None
