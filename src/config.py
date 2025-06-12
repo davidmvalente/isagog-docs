@@ -3,7 +3,7 @@ import os
 class Config:
     def __init__(self):
         self.uploads_dir = os.getenv("UPLOADS_DIR", "/app/uploads")
-        self.mongo_uri = read_secret_or_env("MONGO_URI", "mongodb://localhost:27017/")
+        self.mongo_uri = read_secret_or_env("MONGO_URI")
         self.openrouter_api_key = read_secret_or_env("OPENROUTER_API_KEY", )
         self.openrouter_model = os.getenv("OPENROUTER_MODEL", "gpt-4")
         self.db_name = "maxxi"
