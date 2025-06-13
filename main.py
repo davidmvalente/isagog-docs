@@ -13,8 +13,8 @@ import aiofiles
 
 app = FastAPI(
     title="Document Management API",
-    description="A simple CRUD API for document management with file upload",
-    version="1.0.0"
+    description="A CRUD API for document management with file upload",
+    version="0.1.0"
 )
 
 # Add CORS middleware
@@ -285,4 +285,4 @@ async def health_check():
     }
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(isagog_docs.main:app, host="0.0.0.0", port=8000, reload=True)
