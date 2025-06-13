@@ -124,6 +124,32 @@ async def root():
         }
     }
 
+@app.post("/documents/{document_id}/analysis", status_code=201, tags=["Analysis"])
+async def start_analysis(document_id: UUID):
+    """Start analysis for a document"""
+    doc = get_document_by_id(document_id)
+
+    raise NotImplementedError
+
+@app.get("/documents/{document_id}/analysis", tags=["Analysis"])
+async def review_analysis(document_id: UUID, response_model=Document):
+    """Get analysis for a document for user review"""
+    doc = get_document_by_id(document_id)
+    
+    
+    raise NotImplementedError
+
+@app.put("/documents/{document_id}/analysis", tags=["Analysis"])
+async def commit_analysis(document_id: UUID, analysis: Document):
+    """Get analysis for a document for user review"""
+    doc = get_document_by_id(document_id)
+    
+    # TODO: Get analysis result
+    raise NotImplementedError
+
+
+# Document API Endpoints
+
 @app.post("/documents/", response_model=Document, status_code=201, tags=["Documents"])
 async def create_document(
     file: UploadFile = File(...),

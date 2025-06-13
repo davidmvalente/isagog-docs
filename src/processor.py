@@ -27,7 +27,7 @@ class DocumentProcessor:
         try:
             logger.info(f"Processing {file_path}")
         
-            # Extract knowledge
+            # Extract knowledge from Analyser
             analysis = self.extractor.extract(file_path)
                         
             # Save knowledge stub to MongoDB
