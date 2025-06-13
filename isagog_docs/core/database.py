@@ -25,7 +25,7 @@ async def connect_to_mongo():
     global client, db
     try:
         # Connect to MongoDB using the connection string from settings
-        client = AsyncIOMotorClient(settings.MONGO_CONNECTION_STRING)
+        client = AsyncIOMotorClient(settings.MONGO_URI)
         # Select the database specified in settings
         db = client[settings.MONGO_DB_NAME]
         
@@ -45,7 +45,7 @@ async def close_mongo_connection():
     global client
     if client:
         client.close()
-        print("Closed MongoDB connection.")
+        logger.info("Closed MongoDB connection.")
 
 def get_database() -> Database:
     """
@@ -60,11 +60,11 @@ def get_documents_collection() -> Collection:
     """
     Returns the 'documents' collection from the MongoDB database.
     """
-    return get_database().get_collection("documents")
+    return get_database().get_collection(settings.MONGO_COLLECTION_NAME)
 
 def get_analysis_collection() -> Collection:
     """
     Returns the 'analysis' collection from the MongoDB database, 
     which is the same collection of the documents.
     """
-    return get_database().get_collection("documents")
+    return get_database().get_collection(settings.MONGO_COLLECTION_NAME)

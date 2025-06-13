@@ -6,26 +6,38 @@ It initializes the FastAPI application, adds CORS middleware, and includes
 the API routers for documents and analysis.
 
 """
-
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
+from contextlib import asynccontextmanager
 import os
 from pathlib import Path
 from datetime import datetime
 
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
+
 from isagog_docs.core.config import settings
-from isagog_docs.core.database import connect_to_mongo, get_database
+from isagog_docs.core.database import connect_to_mongo, close_mongo_connection
 from isagog_docs.api import api_router # Import the combined API router
 
-# Ensure the UPLOAD_DIR exists
-Path(settings.UPLOADS_DIR).mkdir(parents=True, exist_ok=True)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Ensure the UPLOAD_DIR exists
+    Path(settings.UPLOADS_DIR).mkdir(parents=True, exist_ok=True)
+    # Create database connection
+    # await connect_to_mongo()
+    yield
+    # Clean up the connection
+    await close_mongo_connection()
+
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
     description=settings.PROJECT_DESCRIPTION,
     version=settings.PROJECT_VERSION,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json"
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    lifespan=lifespan
 )
 
 # Add CORS middleware
@@ -48,12 +60,12 @@ async def health_check():
     # In a real application, you'd check MongoDB connection here
     # from app.core.database import get_database
     try:
-        await connect_to_mongo()
+        mongo_ok = await connect_to_mongo()
     except Exception:
         mongo_ok = False
     
     return {
-        "status": "healthy" if upload_dir_ok else "degraded",
+        "status": "healthy" if (upload_dir_ok and mongo_ok) else "degraded",
         "timestamp": datetime.utcnow().isoformat(),
         "mongo_db_ok": mongo_ok,
         "upload_directory_ok": upload_dir_ok

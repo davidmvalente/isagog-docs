@@ -48,8 +48,8 @@ class Config:
 
         # MongoDB
         self.MONGO_URI = secret_or_env("MONGODB_URI", _raise=True)
-        self.DB_NAME = "maxxi"
-        self.COLLTION_NAME = "docs"
+        self.MONGO_DB_NAME = "maxxi"
+        self.MONGO_COLLECTION_NAME = "docs"
 
         # OpenRouter
         self.OPENROUTER_API_KEY = secret_or_env("OPENROUTER_API_KEY", _raise=True)
