@@ -27,8 +27,6 @@ RUN touch README.md
 RUN poetry install --no-interaction --no-ansi
 
 # Copy application code
-COPY main.py .
-
 COPY isagog_docs /app/isagog_docs
 
 

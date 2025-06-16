@@ -1,6 +1,9 @@
 services:
   crud:
-    build: .
+    build:
+      context: .
+      args:
+        - GITHUB_TOKEN=${GITHUB_TOKEN}
     image: registry.isagog.ai/isagog-docs:0.1.1
     command: ["uvicorn", "isagog_docs.main:app", "--host", "0.0.0.0", "--port", "8000"]    
     ports:
