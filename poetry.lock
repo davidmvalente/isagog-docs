@@ -392,18 +392,6 @@ files = [
 packaging = "*"
 
 [[package]]
-name = "diskcache"
-version = "5.6.3"
-description = "Disk Cache -- Disk and file backed persistent cache."
-optional = false
-python-versions = ">=3"
-groups = ["main"]
-files = [
-    {file = "diskcache-5.6.3-py3-none-any.whl", hash = "sha256:5e31b2d5fbad117cc363ebaf6b689474db18a1f6438bc82358b024abd4c2ca19"},
-    {file = "diskcache-5.6.3.tar.gz", hash = "sha256:2c3a3fa2743d8535d832ec61c2054a1641f41775aa7c556758a109941e33e4fc"},
-]
-
-[[package]]
 name = "distro"
 version = "1.9.0"
 description = "Distro - an OS platform information API"
@@ -797,8 +785,6 @@ fastapi = "^0.115.12"
 haystack-ai = "^2.10.3"
 isagog-kg = {git = "https://github.com/Isagog/isagog-kg.git"}
 isagog-ontologies = {git = "https://github.com/Isagog/isagog-ontologies.git"}
-llama-cpp-haystack = "^1.0.0"
-llama-cpp-python = {version = "^0.3.9", extras = ["server"]}
 nltk = "^3.9.1"
 python-docx = "^1.1.2"
 requests = "^2.32.3"
@@ -808,8 +794,8 @@ uvicorn = "^0.34.0"
 [package.source]
 type = "git"
 url = "https://github.com/Isagog/isagog-platform.git"
-reference = "feat/add-file-reader"
-resolved_reference = "6b80a2f82e3b726053e17c4486ce40c65f5471af"
+reference = "HEAD"
+resolved_reference = "aa9b44f387192b50280311479537e3a9affcf730"
 
 [[package]]
 name = "jinja2"
@@ -981,51 +967,6 @@ files = [
 all = ["black", "flake8", "isort", "mdformat", "mypy", "packaging", "pydocstyle", "pylint", "pylintfileheader", "pytest"]
 checking = ["black", "flake8", "isort", "mdformat", "mypy", "pydocstyle", "pylint", "pylintfileheader"]
 testing = ["packaging", "pytest"]
-
-[[package]]
-name = "llama-cpp-haystack"
-version = "1.0.0"
-description = "An integration between the llama.cpp LLM framework and Haystack"
-optional = false
-python-versions = ">=3.8"
-groups = ["main"]
-files = [
-    {file = "llama_cpp_haystack-1.0.0-py3-none-any.whl", hash = "sha256:4b90fdf97a72d7628222ea5a6985ac5761088707909b992239f62873921c1255"},
-    {file = "llama_cpp_haystack-1.0.0.tar.gz", hash = "sha256:55a4988860d05e612291c26eab7ce783a412d7665399dad88364a7edd9af6b19"},
-]
-
-[package.dependencies]
-haystack-ai = ">=2.9.0"
-llama-cpp-python = ">=0.2.87"
-
-[[package]]
-name = "llama-cpp-python"
-version = "0.3.9"
-description = "Python bindings for the llama.cpp library"
-optional = false
-python-versions = ">=3.8"
-groups = ["main"]
-files = [
-    {file = "llama_cpp_python-0.3.9.tar.gz", hash = "sha256:a3a985f558385e2f5de5b663f4e9b0817506d6af98122450142cd98e79216370"},
-]
-
-[package.dependencies]
-diskcache = ">=5.6.1"
-fastapi = {version = ">=0.100.0", optional = true, markers = "extra == \"server\""}
-jinja2 = ">=2.11.3"
-numpy = ">=1.20.0"
-pydantic-settings = {version = ">=2.0.1", optional = true, markers = "extra == \"server\""}
-PyYAML = {version = ">=5.1", optional = true, markers = "extra == \"server\""}
-sse-starlette = {version = ">=1.6.1", optional = true, markers = "extra == \"server\""}
-starlette-context = {version = ">=0.3.6,<0.4", optional = true, markers = "extra == \"server\""}
-typing-extensions = ">=4.5.0"
-uvicorn = {version = ">=0.22.0", optional = true, markers = "extra == \"server\""}
-
-[package.extras]
-all = ["llama_cpp_python[dev,server,test]"]
-dev = ["black (>=23.3.0)", "httpx (>=0.24.1)", "mkdocs (>=1.4.3)", "mkdocs-material (>=9.1.18)", "mkdocstrings[python] (>=0.22.0)", "pytest (>=7.4.0)", "twine (>=4.0.2)"]
-server = ["PyYAML (>=5.1)", "fastapi (>=0.100.0)", "pydantic-settings (>=2.0.1)", "sse-starlette (>=1.6.1)", "starlette-context (>=0.3.6,<0.4)", "uvicorn (>=0.22.0)"]
-test = ["fastapi (>=0.100.0)", "httpx (>=0.24.1)", "huggingface-hub (>=0.23.0)", "pydantic-settings (>=2.0.1)", "pytest (>=7.4.0)", "scipy (>=1.10)", "sse-starlette (>=1.6.1)", "starlette-context (>=0.3.6,<0.4)"]
 
 [[package]]
 name = "lxml"
@@ -2231,27 +2172,6 @@ keepalive = ["keepalive (>=0.5)"]
 pandas = ["pandas (>=1.3.5)"]
 
 [[package]]
-name = "sse-starlette"
-version = "2.3.6"
-description = "SSE plugin for Starlette"
-optional = false
-python-versions = ">=3.9"
-groups = ["main"]
-files = [
-    {file = "sse_starlette-2.3.6-py3-none-any.whl", hash = "sha256:d49a8285b182f6e2228e2609c350398b2ca2c36216c2675d875f81e93548f760"},
-    {file = "sse_starlette-2.3.6.tar.gz", hash = "sha256:0382336f7d4ec30160cf9ca0518962905e1b69b72d6c1c995131e0a703b436e3"},
-]
-
-[package.dependencies]
-anyio = ">=4.7.0"
-
-[package.extras]
-daphne = ["daphne (>=4.2.0)"]
-examples = ["aiosqlite (>=0.21.0)", "fastapi (>=0.115.12)", "sqlalchemy[asyncio,examples] (>=2.0.41)", "starlette (>=0.41.3)", "uvicorn (>=0.34.0)"]
-granian = ["granian (>=2.3.1)"]
-uvicorn = ["uvicorn (>=0.34.0)"]
-
-[[package]]
 name = "starlette"
 version = "0.46.2"
 description = "The little ASGI library that shines."
@@ -2268,21 +2188,6 @@ anyio = ">=3.6.2,<5"
 
 [package.extras]
 full = ["httpx (>=0.27.0,<0.29.0)", "itsdangerous", "jinja2", "python-multipart (>=0.0.18)", "pyyaml"]
-
-[[package]]
-name = "starlette-context"
-version = "0.3.6"
-description = "Middleware for Starlette that allows you to store and access the context data of a request. Can be used with logging so logs automatically use request headers such as x-request-id or x-correlation-id."
-optional = false
-python-versions = ">=3.8,<4.0"
-groups = ["main"]
-files = [
-    {file = "starlette_context-0.3.6-py3-none-any.whl", hash = "sha256:b14ce373fbb6895a2182a7104b9f63ba20c8db83444005fb9a844dd77ad9895c"},
-    {file = "starlette_context-0.3.6.tar.gz", hash = "sha256:d361a36ba2d4acca3ab680f917b25e281533d725374752d47607a859041958cb"},
-]
-
-[package.dependencies]
-starlette = "*"
 
 [[package]]
 name = "tenacity"
@@ -2499,4 +2404,4 @@ agents = ["weaviate-agents (>=0.3.0,<1.0.0)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "0770190984d9a1a403f62010dd371ae085c68a11b45354f01ac52331cf5e6b80"
+content-hash = "e5ccb55b19149232629eedf8b25209ea1ee1c16b9938230bffe9f786e39ab964"

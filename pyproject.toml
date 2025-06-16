@@ -28,7 +28,7 @@ python-docx = "^1.1.2"
 openrouter-haystack = "^0.1.0"
 pypdf = "^5.6.0"
 pydantic-settings = "^2.9.1"
-isagog-platform = {git = "https://github.com/Isagog/isagog-platform.git", branch = "feat/add-file-reader"}
+isagog-platform = {git = "https://github.com/Isagog/isagog-platform.git"}
 toml = "^0.10.2"
 
 [build-system]
