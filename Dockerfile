@@ -29,6 +29,6 @@ RUN poetry install --no-interaction --no-ansi
 # Copy application code
 COPY main.py .
 
-COPY src /app/src
+COPY isagog_docs /app/isagog_docs
 
 
