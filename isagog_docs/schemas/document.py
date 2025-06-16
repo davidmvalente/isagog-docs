@@ -33,9 +33,8 @@ class Document(BaseModel):
     Pydantic model representing a complete document,
     including file metadata and timestamps.
     """
-    id: UUID = Field(..., description="Unique document identifier")
+    id: UUID = Field(..., description="Unique document identifier", alias="_id")
     filename: str = Field(..., description="Original filename uploaded by the user")
-    filetype: str = Field(..., description="File extension (e.g., .pdf, .docx)")
     file_path: str = Field(..., description="Path to the stored file on the server (relative to UPLOAD_DIR)")
     file_size: int = Field(..., description="Size of the uploaded file in bytes")
     mime_type: str = Field(..., description="MIME type of the file (e.g., application/pdf)")

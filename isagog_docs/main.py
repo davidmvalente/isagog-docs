@@ -16,13 +16,14 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 from isagog_docs.core.config import settings
-from isagog_docs.core.database import connect_to_mongo, close_mongo_connection
+from isagog_docs.core.database import connect_to_mongo, close_mongo_connection, get_database
 from isagog_docs.api import api_router # Import the combined API router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Ensure the UPLOAD_DIR exists
     Path(settings.UPLOAD_DIR).mkdir(parents=True, exist_ok=True)
+    # Load settings
     # Create database connection on a global "client" object
     await connect_to_mongo()
     yield
@@ -66,7 +67,7 @@ async def health_check():
     # In a real application, you'd check MongoDB connection here
     # from app.core.database import get_database
     try:
-        mongo_ok = await connect_to_mongo()
+        mongo_ok = get_database() is not None
     except Exception:
         mongo_ok = False
     

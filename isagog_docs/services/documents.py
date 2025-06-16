@@ -29,9 +29,7 @@ async def get_document_by_id_from_db(document_id: UUID) -> dict:
     Raises HTTPException if the document is not found.
     """
     documents_collection = get_documents_collection() 
-    # MongoDB typically stores _id as ObjectId or a string.
-    # We store UUIDs as strings in the 'id' field, so query by that.
-    doc = await documents_collection.find_one({"id": str(document_id)})
+    doc = await documents_collection.find_one({"_id": document_id})
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
     return doc
@@ -109,7 +107,7 @@ async def create_document_service(
         # Prepare document record for MongoDB
         now = datetime.utcnow()
         doc_dict = {
-            "id": str(doc_id), # Store UUID as string in MongoDB
+            "_id": doc_id, 
             "filename": file.filename,
             "file_path": stored_filename,
             "file_size": file_size,
@@ -154,7 +152,8 @@ async def get_document_service(document_id: UUID) -> Document:
     doc = await get_document_by_id_from_db(document_id)
     return Document(**doc)
 
-async def update_document_service(document_id: UUID, document_update: DocumentUpdate) -> Document:
+async def update_document_service(document_id: UUID, 
+                                  document_update: DocumentUpdate) -> Document:
     """
     Updates metadata for an existing document in MongoDB.
     Does not modify the associated file.
@@ -164,7 +163,7 @@ async def update_document_service(document_id: UUID, document_update: DocumentUp
     # Get existing document to ensure it exists
     existing_doc = await get_document_by_id_from_db(document_id)
     
-    update_data = document_update.model_dump(exclude_unset=True) # Use model_dump for Pydantic v2
+    update_data = document_update.model_dump(exclude_unset=True) 
     
     if not update_data:
         # No updates provided, return existing document
@@ -175,12 +174,12 @@ async def update_document_service(document_id: UUID, document_update: DocumentUp
     
     # Update the document in MongoDB
     result = await documents_collection.update_one(
-        {"id": str(document_id)},
+        {"_id": document_id},
         {"$set": update_data}
     )
     
     if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Document not found")
+        raise HTTPException(status_code=404, detail="Could not update document")
     
     # Retrieve the updated document to return the complete object
     updated_doc = await get_document_by_id_from_db(document_id)
@@ -196,7 +195,7 @@ async def delete_document_service(document_id: UUID) -> None:
     doc = await get_document_by_id_from_db(document_id)
     
     # Delete document record from MongoDB
-    result = await documents_collection.delete_one({"id": str(document_id)})
+    result = await documents_collection.delete_one({"_id": document_id})
     
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Document not found")

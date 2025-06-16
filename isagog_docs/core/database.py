@@ -25,7 +25,8 @@ async def connect_to_mongo():
     global client, db
     try:
         # Connect to MongoDB using the connection string from settings
-        client = AsyncMongoClient(settings.MONGO_URI)
+        # Use standard UUID representation for _id
+        client = AsyncMongoClient(settings.MONGO_URI, uuidRepresentation='standard')
         # Select the database specified in settings
         db = client[settings.MONGO_DB_NAME]
         
