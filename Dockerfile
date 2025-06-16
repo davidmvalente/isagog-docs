@@ -7,7 +7,7 @@ ARG GITHUB_TOKEN
 
 # Install system dependencies including curl for health checks
 RUN apt-get update && apt-get install -y \
-    curl git \
+    curl git build-essential cmake python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install poetry
@@ -24,7 +24,7 @@ COPY pyproject.toml poetry.lock* ./
 RUN touch README.md
 
 # Install dependencies
-RUN poetry install --no-interaction --no-ansi
+RUN poetry install --no-interaction --no-ansi --no-root
 
 # Copy application code
 COPY isagog_docs /app/isagog_docs
