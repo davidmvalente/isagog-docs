@@ -8,8 +8,6 @@ These functions are placeholders for actual analysis implementation.
 from uuid import UUID
 from datetime import datetime
 from fastapi import HTTPException
-from typing import Dict, Optional
-from bson import ObjectId # Required for MongoDB _id
 
 from isagog.components.readers import file_reader
 

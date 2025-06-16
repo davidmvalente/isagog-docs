@@ -14,7 +14,7 @@ services:
       - MONGODB_URI=mongodb://admin:admin@mongo:27017/
       - MONGODB_DB_NAME=dev
       - MONGODB_COLLECTION_NAME=docs
-      - UPLOADS_DIR=/app/uploads
+      - UPLOAD_DIR=/app/uploads
     secrets:
       - OPENROUTER_API_KEY
     healthcheck:

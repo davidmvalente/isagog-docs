@@ -47,7 +47,7 @@ async def list_documents():
     Retrieves a list of all documents currently stored in the database,
     sorted by creation date (newest first).
     """
-    return document_service.get_all_documents_service()
+    return await document_service.get_all_documents_service()
 
 @router.get("/{document_id}", response_model=Document, tags=["Documents"])
 async def get_document(document_id: UUID):
@@ -56,7 +56,7 @@ async def get_document(document_id: UUID):
 
     Retrieves the full metadata for a single document using its unique ID.
     """
-    return document_service.get_document_service(document_id)
+    return await document_service.get_document_service(document_id)
 
 @router.get("/{document_id}/download", tags=["Documents"])
 async def download_document(document_id: UUID):
@@ -86,7 +86,7 @@ async def update_document(document_id: UUID, document_update: DocumentUpdate):
     Allows updating existing metadata for a document, such as its title,
     description, author, or tags. The associated file is not modified.
     """
-    return document_service.update_document_service(document_id, document_update)
+    return await document_service.update_document_service(document_id, document_update)
 
 @router.delete("/{document_id}", status_code=204, tags=["Documents"])
 async def delete_document(document_id: UUID):
@@ -96,5 +96,5 @@ async def delete_document(document_id: UUID):
     Removes a document record from the database and permanently deletes
     its corresponding file from the filesystem.
     """
-    document_service.delete_document_service(document_id)
+    await document_service.delete_document_service(document_id)
     return None

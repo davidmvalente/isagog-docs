@@ -44,7 +44,7 @@ async def close_mongo_connection():
     """
     global client
     if client:
-        client.close()
+        await client.close()
         logger.info("Closed MongoDB connection.")
 
 def get_database() -> Database:

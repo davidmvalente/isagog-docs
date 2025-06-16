@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 class Config:
     def __init__(self):
-        self.uploads_dir = os.getenv("UPLOADS_DIR", "/app/uploads")
+        self.upload_dir = os.getenv("UPLOAD_DIR", "/app/uploads")
         self.mongo_uri = secret_or_env("MONGODB_URI",_raise =True)
         self.openrouter_api_key = secret_or_env("OPENROUTER_API_KEY", _raise = True)
         self.openrouter_model = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o")

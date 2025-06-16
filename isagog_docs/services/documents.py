@@ -9,6 +9,7 @@ import aiofiles
 import mimetypes
 from pathlib import Path
 from uuid import UUID, uuid4
+import logging
 from datetime import datetime
 from typing import Dict, List, Optional
 from bson import ObjectId # Required for MongoDB _id
@@ -19,13 +20,15 @@ from isagog_docs.core.config import settings
 from isagog_docs.core.database import get_documents_collection # Import the MongoDB collection getter
 from isagog_docs.schemas.document import Document, DocumentUpdate
 
+logger = logging.getLogger(__name__)
+
 # Helper Functions
 async def get_document_by_id_from_db(document_id: UUID) -> dict:
     """
     Retrieves a document from the MongoDB collection by its ID.
     Raises HTTPException if the document is not found.
     """
-    documents_collection = get_documents_collection()
+    documents_collection = get_documents_collection() 
     # MongoDB typically stores _id as ObjectId or a string.
     # We store UUIDs as strings in the 'id' field, so query by that.
     doc = await documents_collection.find_one({"id": str(document_id)})
@@ -108,7 +111,6 @@ async def create_document_service(
         doc_dict = {
             "id": str(doc_id), # Store UUID as string in MongoDB
             "filename": file.filename,
-            "filetype": get_file_extension(file.filename),
             "file_path": stored_filename,
             "file_size": file_size,
             "mime_type": mime_type,
@@ -135,6 +137,7 @@ async def create_document_service(
             file_path.unlink()
         if isinstance(e, HTTPException):
             raise e
+        logger.error(f"Failed to create document: {str(e)}", stack_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to create document: {str(e)}")
 
 async def get_all_documents_service() -> List[Document]:
