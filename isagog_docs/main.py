@@ -22,9 +22,9 @@ from isagog_docs.api import api_router # Import the combined API router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Ensure the UPLOAD_DIR exists
-    Path(settings.UPLOADS_DIR).mkdir(parents=True, exist_ok=True)
-    # Create database connection
-    # await connect_to_mongo()
+    Path(settings.UPLOAD_DIR).mkdir(parents=True, exist_ok=True)
+    # Create database connection on a global "client" object
+    await connect_to_mongo()
     yield
     # Clean up the connection
     await close_mongo_connection()
@@ -61,7 +61,7 @@ async def root():
 @app.get("/health", tags=["Health"])
 async def health_check():
     """Health check endpoint to verify service status and dependencies."""
-    upload_dir_ok = Path(settings.UPLOADS_DIR).exists() and os.access(Path(settings.UPLOADS_DIR), os.W_OK)
+    upload_dir_ok = Path(settings.UPLOAD_DIR).exists() and os.access(Path(settings.UPLOAD_DIR), os.W_OK)
     
     # In a real application, you'd check MongoDB connection here
     # from app.core.database import get_database

@@ -43,22 +43,18 @@ class Config:
         self.API_V1_STR = "/api/v1"
 
         # Directories and limits
-        self.UPLOADS_DIR = Path(os.getenv("UPLOADS_DIR", "/app/uploads"))
-        self.MAX_FILE_SIZE_BYTES = int(os.getenv("MAX_FILE_SIZE_MB", "10"))
+        self.UPLOAD_DIR = Path(os.getenv("UPLOAD_DIR", "/app/uploads"))
+        self.MAX_FILE_SIZE_MB = int(os.getenv("MAX_FILE_SIZE_MB", "10"))
+        self.MAX_FILE_SIZE_BYTES = self.MAX_FILE_SIZE_MB * 1024 * 1024
 
         # MongoDB
-        self.MONGO_URI = secret_or_env("MONGODB_URI", _raise=True)
-        self.MONGO_DB_NAME = "maxxi"
-        self.MONGO_COLLECTION_NAME = "docs"
+        self.MONGO_URI = secret_or_env("MONGO_URI", _raise=True)
+        self.MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "dev")
+        self.MONGO_COLLECTION_NAME = os.getenv("MONGO_COLLECTION_NAME", "docs")
 
         # OpenRouter
         self.OPENROUTER_API_KEY = secret_or_env("OPENROUTER_API_KEY", _raise=True)
         self.OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o")
-
-    @property
-    def max_file_size_bytes(self) -> int:
-        """Convert MB to bytes."""
-        return self.max_file_size_mb * 1024 * 1024
 
 # Singleton config instance
 settings = Config()
