@@ -19,8 +19,6 @@ from isagog_docs.core.config import settings
 from isagog_docs.core.database import connect_to_mongo, close_mongo_connection
 from isagog_docs.api import api_router # Import the combined API router
 
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Ensure the UPLOAD_DIR exists
@@ -51,6 +49,14 @@ app.add_middleware(
 
 # Include the main API router
 app.include_router(api_router, prefix=settings.API_V1_STR)
+
+@app.get("/", tags=["Root"])
+async def root():
+    """Root endpoint to return the API documentation."""
+    return {
+        "message": settings.PROJECT_DESCRIPTION,
+        "version": settings.PROJECT_VERSION,
+    }
 
 @app.get("/health", tags=["Health"])
 async def health_check():

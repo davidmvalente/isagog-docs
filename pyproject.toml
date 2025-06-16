@@ -1,9 +1,9 @@
 [project]
 name = "isagog-docs"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = [
-    {name = "David Valente",email = "d.valente@davidvalente.xyz"}
+    {name = "David Valente",email = "d.valente@isagog.com"}
 ]
 readme = "README.md"
 requires-python = ">=3.11"

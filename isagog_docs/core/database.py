@@ -4,7 +4,7 @@ app/core/database.py
 Manages the asynchronous MongoDB connection using Motor.
 """
 
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import AsyncMongoClient
 from pymongo.database import Database
 from pymongo.collection import Collection
 import logging
@@ -12,7 +12,7 @@ import logging
 from isagog_docs.core.config import settings
 
 # Global client and database instances
-client: AsyncIOMotorClient = None
+client: AsyncMongoClient = None
 db: Database = None
 
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ async def connect_to_mongo():
     global client, db
     try:
         # Connect to MongoDB using the connection string from settings
-        client = AsyncIOMotorClient(settings.MONGO_URI)
+        client = AsyncMongoClient(settings.MONGO_URI)
         # Select the database specified in settings
         db = client[settings.MONGO_DB_NAME]
         

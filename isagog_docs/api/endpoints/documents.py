@@ -14,7 +14,7 @@ from isagog_docs.services import documents as document_service
 from isagog_docs.core.config import settings
 from pathlib import Path
 
-router = APIRouter()
+router = APIRouter(prefix="/documents")
 
 @router.post("/", response_model=Document, status_code=201, tags=["Documents"])
 async def create_document(
