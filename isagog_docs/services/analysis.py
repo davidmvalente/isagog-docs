@@ -11,10 +11,11 @@ from fastapi import HTTPException
 from typing import Dict, Optional
 from bson import ObjectId # Required for MongoDB _id
 
+from isagog.components.readers import file_reader
+
 from isagog_docs.core.database import get_documents_collection, get_analysis_collection
 from isagog_docs.schemas.document import Document
 from isagog_docs.schemas.analysis import AnalysisResponse, AnalysisResult, AnalysisCommit
-
 
 async def _get_document_from_db(document_id: UUID) -> dict:
     """Helper to retrieve a document from the MongoDB documents collection."""
@@ -32,6 +33,7 @@ async def start_analysis_service(document_id: UUID) -> AnalysisResponse:
     await _get_document_from_db(document_id) # Ensure document exists
 
     analysis_collection = get_analysis_collection()
+    
     # Check if analysis is already pending for this document
     existing_analysis = await analysis_collection.find_one({
         "document_id": str(document_id),
@@ -39,7 +41,7 @@ async def start_analysis_service(document_id: UUID) -> AnalysisResponse:
     })
     
     if existing_analysis:
-        raise HTTPException(status_code=409, detail="Analysis already pending for this document.")
+        raise HTTPException(status_code=409, detail="Analysis already in progress for this document.")
 
     # Create a new analysis record
     analysis_data = AnalysisResponse(
