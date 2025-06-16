@@ -23,13 +23,6 @@ COPY pyproject.toml poetry.lock* ./
 
 RUN touch README.md
 
-RUN mkdir -p /tmp/pkg-cache && \
-    git clone https://oauth2:${GITHUB_TOKEN}@github.com/Isagog/isagog-platform.git /tmp/pkg-cache/isagog-platform && \
-    cd /tmp/pkg-cache/isagog-platform && \
-    git checkout feat/add-file-reader
-
-ENV POETRY_CACHE_DIR=/tmp/pkg-cache
-
 # Install dependencies
 RUN poetry install --no-interaction --no-ansi --no-root
 
