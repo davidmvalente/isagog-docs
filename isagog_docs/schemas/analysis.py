@@ -10,15 +10,7 @@ from typing import List, Optional
 from uuid import UUID
 from datetime import datetime
 
-class AnalysisResult(BaseModel):
-    """
-    Represents the result of a document analysis.
-    This is a placeholder; expand with actual analysis fields.
-    """
-    extracted_text: Optional[str] = Field(None, description="Extracted text from the document")
-    keywords: List[str] = Field(default_factory=list, description="List of keywords identified")
-    summary: Optional[str] = Field(None, description="Summarized content of the document")
-    analysis_date: datetime = Field(default_factory=datetime.utcnow, description="Timestamp of when analysis was completed")
+from isagog.components.analyzers.analyzer import Analysis as AnalysisResult
 
 class AnalysisResponse(BaseModel):
     """

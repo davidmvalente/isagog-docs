@@ -1,66 +1,126 @@
 """
 app/services/analysis.py
 
-Contains business logic for document analysis operations, interacting with MongoDB.
-These functions are placeholders for actual analysis implementation.
+Contains business logic for document analysis operations and upload to MongoDB.
 """
-
+import logging
 from uuid import UUID
+from typing import List
 from datetime import datetime
 from fastapi import HTTPException
 
-from isagog.components.readers import file_reader
+from haystack import Pipeline, component
+from haystack import Document as HaystackDocument
+from haystack.components.preprocessors import DocumentCleaner
+
+from isagog.components.analyzers.analyzer import Frame
+from isagog.components.proxy.openrouter_proxy import OpenRouterProxy
+from isagog.components.readers.file_reader import FileReader
+from isagog.components.analyzers.concept_analyzer import ConceptAnalyzer
+from isagog.components.analyzers.situation_analyzer import SituationAnalyzer
 
 from isagog_docs.core.database import get_documents_collection, get_analysis_collection
+from isagog_docs.core.config import settings
 from isagog_docs.schemas.document import Document
 from isagog_docs.schemas.analysis import AnalysisResponse, AnalysisResult, AnalysisCommit
 
-async def _get_document_from_db(document_id: UUID) -> dict:
-    """Helper to retrieve a document from the MongoDB documents collection."""
-    documents_collection = get_documents_collection()
-    doc = await documents_collection.find_one({"id": str(document_id)})
-    if not doc:
-        raise HTTPException(status_code=404, detail="Document not found")
-    return doc
+logger = logging.getLogger(__name__)
+
+@component
+class DocumentToString:
+    @component.output_types(text=str)
+    def run(self, documents: List[HaystackDocument]):
+        # Concatenate the text of the first documents
+        combined_text = documents[0].content
+        return {"text": combined_text}
+
+DEFAULT_FRAME_EN = Frame(
+        name="default",
+        version="0.2",
+        language="en",
+        description="Default frame for entities and relations",
+        concepts=["Person", "Organization", "Place", "Event", "Situation",  "Object", "Concept", "Quality", "Date", "Period", "Number",],
+        relations=["(Object) is part of (Object)", 
+                   "(Concept) is a kind of (Concept)", 
+                   "(Person) is member of (Organization)", 
+                   "(Event) takes place in (Place)", 
+                   "(Object) is located in (Place)", 
+                   "(Person, Organization) takes part in (Event, Situation)", 
+                   "(Event) is result of (Event)", 
+                   "(Object) belongs to (Organization)", 
+                   "(Concept) refers to (Concept)", 
+                   "(Person) has quality (Quality)", 
+                   "(Object) has quality (Quality)", 
+                   "(Concept) has quality (Quality)", 
+                   "(Person, Organization, Place, Event, Situation,  Object) has quality (Quality)",                    
+                  ]
+    )
+
+DAVIDSON_FRAME_EN = Frame(
+    name="davidson_frame_en",
+    concepts=["Person", "Organization", "Location"],
+    situations=["Event", "Action", "State"],
+    roles=["subject", "object", "agent", "patient", "location"],
+    version="1.0",
+    language="en",
+    description="A frame for Davidson's analysis in English"
+)
+
+async def analysis_pipeline_factory() -> Pipeline:
+    p = Pipeline()  
+    
+    llm = OpenRouterProxy(api_key = settings.OPENROUTER_API_KEY)
+    p.add_component("file_reader", FileReader())
+    p.add_component("document_cleaner", DocumentCleaner())
+    p.add_component("doc_content", DocumentToString())
+    p.add_component("relations", ConceptAnalyzer(llm_generator=llm, frame=DEFAULT_FRAME_EN))
+    p.add_component("situations", SituationAnalyzer(llm_generator=llm, frame=DAVIDSON_FRAME_EN))
+    # Connect 
+    p.connect("file_reader", "document_cleaner")
+    p.connect("document_cleaner", "doc_content")
+    p.connect("doc_content", "relations")    
+    p.connect("doc_content", "situations")  
+    return p
 
 async def start_analysis_service(document_id: UUID) -> AnalysisResponse:
     """
     Initiates an analysis process for a given document in MongoDB.
     This is a placeholder for a real analysis job.
     """
-    await _get_document_from_db(document_id) # Ensure document exists
-
-    analysis_collection = get_analysis_collection()
+    analysis_collection = get_analysis_collection() # equal to the documents collection
     
-    # Check if analysis is already pending for this document
-    existing_analysis = await analysis_collection.find_one({
-        "document_id": str(document_id),
-        "status": "pending"
+    # Ensure document exists
+    document = await analysis_collection.find_one({
+        "_id": document_id,
     })
-    
-    if existing_analysis:
+
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    # Check if analysis is already pending for this document
+    if document.get("status") == "pending":
         raise HTTPException(status_code=409, detail="Analysis already in progress for this document.")
 
-    # Create a new analysis record
-    analysis_data = AnalysisResponse(
-        document_id=document_id,
-        status="pending",
-        last_updated=datetime.utcnow(),
-        result=None
-    )
-    
-    # Convert to dict for MongoDB insertion, handling UUID conversion
-    analysis_dict = analysis_data.model_dump(by_alias=True)
-    # Ensure document_id is stored as string for querying
-    analysis_dict["document_id"] = str(analysis_data.document_id) 
+    # Create a new analysis pipeline
+    pipeline = await analysis_pipeline_factory()
 
-    # Insert into MongoDB
-    result = await analysis_collection.insert_one(analysis_dict)
-    
-    # Add the MongoDB _id to the response model
-    analysis_data.id = str(result.inserted_id)
+    # Add the document to the pipeline
+    results = pipeline.run({"file_reader": {"file_paths": [document["file_path"]]}})
 
-    return analysis_data
+    logger.info(f"Analysis results: {results}")
+
+    # # Convert to dict for MongoDB insertion, handling UUID conversion
+    # analysis_dict = result.model_dump(by_alias=True)
+    # # Ensure document_id is stored as string for querying
+    # analysis_dict["document_id"] = str(document._id) 
+
+    # # Insert into MongoDB
+    # result = await analysis_collection.insert_one(analysis_dict)
+    
+    # # Add the MongoDB _id to the response model
+    # results.id = str(result.inserted_id)
+
+    return {"OK": document._id}
 
 async def get_analysis_service(document_id: UUID) -> AnalysisResponse:
     """

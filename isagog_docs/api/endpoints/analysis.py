@@ -21,7 +21,7 @@ async def start_analysis(document_id: UUID):
     Initiates an asynchronous analysis process for the specified document.
     Returns the initial status of the analysis.
     """
-    return analysis_service.start_analysis_service(document_id)
+    return await analysis_service.start_analysis_service(document_id)
 
 @router.get("/", response_model=AnalysisResponse, tags=["Analysis"])
 async def get_analysis(document_id: UUID):
@@ -30,7 +30,7 @@ async def get_analysis(document_id: UUID):
 
     Retrieves the current status and results of the analysis for a document.
     """
-    return analysis_service.get_analysis_service(document_id)
+    return await analysis_service.get_analysis_service(document_id)
 
 @router.put("/", response_model=AnalysisResponse, tags=["Analysis"])
 async def commit_analysis(document_id: UUID, commit_data: AnalysisCommit):
@@ -39,4 +39,4 @@ async def commit_analysis(document_id: UUID, commit_data: AnalysisCommit):
 
     Allows a user to commit (e.g., approve or reject) the results of a document analysis.
     """
-    return analysis_service.commit_analysis_service(document_id, commit_data)
+    return await analysis_service.commit_analysis_service(document_id, commit_data)
