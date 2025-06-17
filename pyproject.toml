@@ -1,6 +1,6 @@
 [project]
 name = "isagog-docs"
-version = "0.1.1"
+version = "0.1.2"
 description = ""
 authors = [
     {name = "David Valente",email = "d.valente@isagog.com"}
@@ -10,7 +10,7 @@ requires-python = ">=3.11"
 
 [tool.poetry]
 name = "isagog-docs"
-version = "0.1.1"
+version = "0.1.2"
 description = "Isagog Documents Management API"
 
 [tool.poetry.dependencies]
@@ -28,6 +28,8 @@ openrouter-haystack = "^0.1.0"
 pypdf = "^5.6.0"
 pydantic-settings = "^2.9.1"
 isagog-platform = {git = "https://github.com/Isagog/isagog-platform.git"}
+# Uncomment in development
+# isagog-platform = {path = "../isagog-platform", develop = true}
 toml = "^0.10.2"
 
 [build-system]
