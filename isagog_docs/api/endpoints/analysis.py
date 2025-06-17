@@ -13,7 +13,7 @@ from isagog_docs.services import analysis as analysis_service
 
 router = APIRouter(prefix="/documents/{document_id}/analysis")
 
-@router.post("/", status_code=201, response_model=AnalysisResponse, tags=["Analysis"])
+@router.post("/", status_code=201, tags=["Analysis"])
 async def start_analysis(document_id: UUID):
     """
     **Start analysis for a document.**

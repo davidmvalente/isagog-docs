@@ -8,6 +8,7 @@ from uuid import UUID
 from typing import List
 from datetime import datetime
 from fastapi import HTTPException
+from pathlib import Path
 
 from haystack import Pipeline, component
 from haystack import Document as HaystackDocument
@@ -69,12 +70,13 @@ DAVIDSON_FRAME_EN = Frame(
 async def analysis_pipeline_factory() -> Pipeline:
     p = Pipeline()  
     
-    llm = OpenRouterProxy(api_key = settings.OPENROUTER_API_KEY)
+    llm_factory = lambda: OpenRouterProxy(api_key = settings.OPENROUTER_API_KEY, model = settings.OPENROUTER_MODEL)
+
     p.add_component("file_reader", FileReader())
     p.add_component("document_cleaner", DocumentCleaner())
-    p.add_component("doc_content", DocumentToString())
-    p.add_component("relations", ConceptAnalyzer(llm_generator=llm, frame=DEFAULT_FRAME_EN))
-    p.add_component("situations", SituationAnalyzer(llm_generator=llm, frame=DAVIDSON_FRAME_EN))
+    p.add_component("doc_content", DocumentToString())  
+    p.add_component("relations", ConceptAnalyzer(llm_generator=llm_factory(), frame=DEFAULT_FRAME_EN))
+    p.add_component("situations", SituationAnalyzer(llm_generator=llm_factory(), frame=DAVIDSON_FRAME_EN))
     # Connect 
     p.connect("file_reader", "document_cleaner")
     p.connect("document_cleaner", "doc_content")
@@ -100,39 +102,44 @@ async def start_analysis_service(document_id: UUID) -> AnalysisResponse:
     # Check if analysis is already pending for this document
     if document.get("status") == "pending":
         raise HTTPException(status_code=409, detail="Analysis already in progress for this document.")
+    
+    target_file_path = Path(settings.UPLOAD_DIR) / document["file_path"]
+
+    if not target_file_path.exists():
+        _error_message = "The document was found, but the associated file could not be located on the server."
+        "It may have been moved or deleted."
+        raise HTTPException(status_code=404, detail=_error_message)
 
     # Create a new analysis pipeline
     pipeline = await analysis_pipeline_factory()
 
     # Add the document to the pipeline
-    results = pipeline.run({"file_reader": {"file_paths": [document["file_path"]]}})
+    try:
+        results = pipeline.run(
+            {"file_reader": 
+                {"file_paths": [target_file_path]}
+            }
+        )
 
-    logger.info(f"Analysis results: {results}")
+        analysis = 
 
-    # # Convert to dict for MongoDB insertion, handling UUID conversion
-    # analysis_dict = result.model_dump(by_alias=True)
-    # # Ensure document_id is stored as string for querying
-    # analysis_dict["document_id"] = str(document._id) 
+        logger.info(f"Analysis results: {results}")
 
-    # # Insert into MongoDB
-    # result = await analysis_collection.insert_one(analysis_dict)
-    
-    # # Add the MongoDB _id to the response model
-    # results.id = str(result.inserted_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to analyze document: {e}")
 
-    return {"OK": document._id}
+    return {"_id": str(document["_id"]), "status": "completed", "analysis": results}
 
 async def get_analysis_service(document_id: UUID) -> AnalysisResponse:
     """
     Retrieves the analysis status and results for a document from MongoDB.
     """
-    await _get_document_from_db(document_id) # Ensure document exists
 
     analysis_collection = get_analysis_collection()
     analysis_data_doc = await analysis_collection.find_one({"document_id": str(document_id)})
     
     if not analysis_data_doc:
-        raise HTTPException(status_code=404, detail="Analysis not found for this document.")
+        raise HTTPException(status_code=404, detail="Document analysis not found.")
     
     return AnalysisResponse(**analysis_data_doc)
 
