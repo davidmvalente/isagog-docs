@@ -8,7 +8,10 @@ request body validation and response serialization.
 from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional
 from uuid import UUID
+from enum import Enum
 from datetime import datetime
+
+from isagog.components.analyzers.analyzer import Analysis as AnalysisResult
 
 class DocumentUpdate(BaseModel):
     """
@@ -28,13 +31,21 @@ class DocumentUpdate(BaseModel):
             return [tag.strip().lower() for tag in v if tag.strip()]
         return v
 
+class DocumentStatus(str, Enum):
+    draft = "draft" # document was created and uploaded
+    submitted = "submitted" # analysis is in progress
+    completed = "completed" # analysis is complete
+    failed = "failed" # analysis failed
+    approved = "approved" # analysis was reviewed and approved
+
 class Document(BaseModel):
     """
     Pydantic model representing a complete document,
     including file metadata and timestamps.
     """
     id: UUID = Field(..., description="Unique document identifier", alias="_id")
-    filename: str = Field(..., description="Original filename uploaded by the user")
+    status: DocumentStatus = Field(DocumentStatus.draft, description="Current status of the document")
+    file_name: str = Field(..., description="Original file_name uploaded by the user")
     file_path: str = Field(..., description="Path to the stored file on the server (relative to UPLOAD_DIR)")
     file_size: int = Field(..., description="Size of the uploaded file in bytes")
     mime_type: str = Field(..., description="MIME type of the file (e.g., application/pdf)")
@@ -42,6 +53,7 @@ class Document(BaseModel):
     description: Optional[str] = Field(None, description="Document description")
     author: str = Field(..., description="Document author")
     tags: List[str] = Field(default_factory=list, description="List of associated tags")
+    analysis : Optional[AnalysisResult] = Field(None, description="Analysis results for the document")
     creation_date: datetime = Field(..., description="Timestamp of document creation")
     updated_date: datetime = Field(..., description="Timestamp of last document update")
 

@@ -100,7 +100,7 @@ async def start_analysis_service(document_id: UUID) -> AnalysisResponse:
         raise HTTPException(status_code=404, detail="Document not found")
 
     # Check if analysis is already pending for this document
-    if document.get("status") == "pending":
+    if document.get("status") == "submitted":
         raise HTTPException(status_code=409, detail="Analysis already in progress for this document.")
     
     target_file_path = Path(settings.UPLOAD_DIR) / document["file_path"]
@@ -108,27 +108,57 @@ async def start_analysis_service(document_id: UUID) -> AnalysisResponse:
     if not target_file_path.exists():
         _error_message = "The document was found, but the associated file could not be located on the server."
         "It may have been moved or deleted."
-        raise HTTPException(status_code=404, detail=_error_message)
+        raise HTTPException(status_code=424, detail=_error_message)
 
     # Create a new analysis pipeline
     pipeline = await analysis_pipeline_factory()
 
     # Add the document to the pipeline
     try:
+        # Start analysis
+        await analysis_collection.update_one(
+            {"_id": document_id},
+            {"$set": {"status": "submitted"}}
+        )
+
         results = pipeline.run(
             {"file_reader": 
                 {"file_paths": [target_file_path]}
             }
         )
 
-        analysis = 
+        _analysis = {    
+            'situations' : results['situations'].get('analysis', {}).get("situations", []),
+            'relations' : results['relations'].get('analysis', {}).get("relations", [])
+        }
 
-        logger.info(f"Analysis results: {results}")
+        # merge unique entities
+        _situations_entities = results['situations'].get('analysis', {}).get("entities", [])
+        _relations_entities = results['relations'].get('analysis', {}).get("entities", [])
+        _unique_entities = set(tuple(sorted(entity.items())) for entity in _situations_entities + _relations_entities)
 
+        _analysis["entities"]  = [
+            dict(entity_tuple) for entity_tuple in _unique_entities
+        ]
+
+        _status = "completed"
+        
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to analyze document: {e}")
+        _analysis = None
+        _status = "failed"
+        logger.error(f"Failed to analyze document: {e}", stack_info=True)
+    
+    finally:
+        # Update the analysis record in MongoDB
+        await analysis_collection.update_one(
+            {"_id": document_id},
+            {"$set": {"status": _status, "analysis": _analysis}}
+        )
+    
+    if _status == "failed":
+        raise HTTPException(status_code=408, detail=f"Analysis failed for document {document_id}")
 
-    return {"_id": str(document["_id"]), "status": "completed", "analysis": results}
+    return Document(_id=str(document_id), status=_status, analysis=_analysis)
 
 async def get_analysis_service(document_id: UUID) -> AnalysisResponse:
     """
@@ -136,55 +166,57 @@ async def get_analysis_service(document_id: UUID) -> AnalysisResponse:
     """
 
     analysis_collection = get_analysis_collection()
-    analysis_data_doc = await analysis_collection.find_one({"document_id": str(document_id)})
+    document = await analysis_collection.find_one({
+        "_id": document_id,
+    })
     
-    if not analysis_data_doc:
+    if not document:
         raise HTTPException(status_code=404, detail="Document analysis not found.")
     
-    return AnalysisResponse(**analysis_data_doc)
+    return Document(**document)
 
 async def commit_analysis_service(document_id: UUID, commit_data: AnalysisCommit) -> AnalysisResponse:
     """
     Commits (approves/rejects) the analysis results for a document in MongoDB.
     This also updates the analysis status to 'completed' or 'reviewed'.
     """
-    await _get_document_from_db(document_id) # Ensure document exists
+    raise NotImplementedError
     
-    analysis_collection = get_analysis_collection()
+    # analysis_collection = get_analysis_collection()
     
-    existing_analysis_doc = await analysis_collection.find_one({"document_id": str(document_id)})
-    if not existing_analysis_doc:
-        raise HTTPException(status_code=404, detail="Analysis not found for this document.")
+    # existing_analysis_doc = await analysis_collection.find_one({"document_id": str(document_id)})
+    # if not existing_analysis_doc:
+    #     raise HTTPException(status_code=404, detail="Analysis not found for this document.")
 
-    analysis_data = AnalysisResponse(**existing_analysis_doc)
+    # analysis_data = AnalysisResponse(**existing_analysis_doc)
 
-    update_fields = {}
-    if analysis_data.status == "pending":
-        update_fields["status"] = "completed" if commit_data.is_approved else "reviewed"
-        update_fields["last_updated"] = datetime.utcnow()
-        if not analysis_data.result:
-             # Simulate completing the analysis with some dummy data if pending
-             update_fields["result"] = AnalysisResult(
-                 extracted_text=f"Sample extracted text for document {document_id}",
-                 keywords=["sample", "document", "analysis"],
-                 summary="This is a sample summary generated after analysis.",
-                 analysis_date=datetime.utcnow()
-             ).model_dump() # Convert Pydantic model to dict for MongoDB
+    # update_fields = {}
+    # if analysis_data.status == "pending":
+    #     update_fields["status"] = "completed" if commit_data.is_approved else "reviewed"
+    #     update_fields["last_updated"] = datetime.utcnow()
+    #     if not analysis_data.result:
+    #          # Simulate completing the analysis with some dummy data if pending
+    #          update_fields["result"] = AnalysisResult(
+    #              extracted_text=f"Sample extracted text for document {document_id}",
+    #              keywords=["sample", "document", "analysis"],
+    #              summary="This is a sample summary generated after analysis.",
+    #              analysis_date=datetime.utcnow()
+    #          ).model_dump() # Convert Pydantic model to dict for MongoDB
 
-    else:
-        # If analysis was already completed, just update review notes or similar
-        update_fields["status"] = "reviewed"
-        update_fields["last_updated"] = datetime.utcnow()
+    # else:
+    #     # If analysis was already completed, just update review notes or similar
+    #     update_fields["status"] = "reviewed"
+    #     update_fields["last_updated"] = datetime.utcnow()
     
-    # Update the analysis record in MongoDB
-    result = await analysis_collection.update_one(
-        {"document_id": str(document_id)},
-        {"$set": update_fields}
-    )
+    # # Update the analysis record in MongoDB
+    # result = await analysis_collection.update_one(
+    #     {"document_id": str(document_id)},
+    #     {"$set": update_fields}
+    # )
 
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Analysis record not found for update.")
+    # if result.matched_count == 0:
+    #     raise HTTPException(status_code=404, detail="Analysis record not found for update.")
     
-    # Retrieve the updated analysis record to return
-    updated_analysis_doc = await analysis_collection.find_one({"document_id": str(document_id)})
-    return AnalysisResponse(**updated_analysis_doc)
+    # # Retrieve the updated analysis record to return
+    # updated_analysis_doc = await analysis_collection.find_one({"document_id": str(document_id)})
+    # return AnalysisResponse(**updated_analysis_doc)

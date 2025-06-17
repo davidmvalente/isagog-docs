@@ -64,7 +64,7 @@ async def download_document(document_id: UUID):
     **Download the file associated with a document.**
 
     Allows users to download the original uploaded file using the document's ID.
-    Returns a FileResponse with the correct filename and MIME type.
+    Returns a FileResponse with the correct file_name and MIME type.
     """
     doc = document_service.get_document_service(document_id)
     file_path = Path(settings.UPLOAD_DIR) / doc["file_path"]
@@ -74,7 +74,7 @@ async def download_document(document_id: UUID):
     
     return FileResponse(
         path=str(file_path),
-        filename=doc["filename"],
+        file_name=doc["file_name"],
         media_type=doc["mime_type"]
     )
 

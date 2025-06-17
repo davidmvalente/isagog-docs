@@ -8,12 +8,13 @@ These endpoints interact with the analysis service.
 from fastapi import APIRouter, HTTPException
 from uuid import UUID
 
-from isagog_docs.schemas.analysis import AnalysisResponse, AnalysisCommit
+from isagog_docs.schemas.analysis import AnalysisCommit
+from isagog_docs.schemas.document import Document
 from isagog_docs.services import analysis as analysis_service
 
 router = APIRouter(prefix="/documents/{document_id}/analysis")
 
-@router.post("/", status_code=201, tags=["Analysis"])
+@router.post("/", status_code=201, response_model=Document, tags=["Analysis"])
 async def start_analysis(document_id: UUID):
     """
     **Start analysis for a document.**
@@ -23,7 +24,7 @@ async def start_analysis(document_id: UUID):
     """
     return await analysis_service.start_analysis_service(document_id)
 
-@router.get("/", response_model=AnalysisResponse, tags=["Analysis"])
+@router.get("/", response_model=Document, tags=["Analysis"])
 async def get_analysis(document_id: UUID):
     """
     **Get analysis for a document for user review.**
@@ -32,7 +33,7 @@ async def get_analysis(document_id: UUID):
     """
     return await analysis_service.get_analysis_service(document_id)
 
-@router.put("/", response_model=AnalysisResponse, tags=["Analysis"])
+@router.put("/", response_model=Document, tags=["Analysis"])
 async def commit_analysis(document_id: UUID, commit_data: AnalysisCommit):
     """
     **Commit analysis for a document.**

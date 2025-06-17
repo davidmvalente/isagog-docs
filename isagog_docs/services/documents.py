@@ -34,13 +34,13 @@ async def get_document_by_id_from_db(document_id: UUID) -> dict:
         raise HTTPException(status_code=404, detail="Document not found")
     return doc
 
-def get_file_extension(filename: str) -> str:
-    """Extracts the file extension from a given filename."""
-    return Path(filename).suffix.lower()
+def get_file_extension(file_name: str) -> str:
+    """Extracts the file extension from a given file_name."""
+    return Path(file_name).suffix.lower()
 
-def generate_unique_filename(original_filename: str, doc_id: UUID) -> str:
-    """Generates a unique filename for storing the uploaded file."""
-    file_ext = get_file_extension(original_filename)
+def generate_unique_file_name(original_file_name: str, doc_id: UUID) -> str:
+    """Generates a unique file_namee for storing the uploaded file."""
+    file_ext = get_file_extension(original_file_name)
     return f"{doc_id}{file_ext}"
 
 async def save_file_to_disk(file: UploadFile, filepath: Path) -> int:
@@ -92,8 +92,8 @@ async def create_document_service(
     
     # Generate document ID and file path
     doc_id = uuid4()
-    stored_filename = generate_unique_filename(file.filename, doc_id)
-    file_path = Path(settings.UPLOAD_DIR) / stored_filename
+    stored_file_name = generate_unique_file_name(file.filename, doc_id)
+    file_path = Path(settings.UPLOAD_DIR) / stored_file_name
     
     try:
         # Save file
@@ -108,8 +108,8 @@ async def create_document_service(
         now = datetime.utcnow()
         doc_dict = {
             "_id": doc_id, 
-            "filename": file.filename,
-            "file_path": stored_filename,
+            "file_name": file.filename,
+            "file_path": stored_file_name,
             "file_size": file_size,
             "mime_type": mime_type,
             "title": title,
