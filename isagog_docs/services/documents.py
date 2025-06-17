@@ -108,6 +108,7 @@ async def create_document_service(
         now = datetime.utcnow()
         doc_dict = {
             "_id": doc_id, 
+            "status" : "draft",
             "file_name": file.filename,
             "file_path": stored_file_name,
             "file_size": file_size,
@@ -145,6 +146,8 @@ async def get_all_documents_service() -> List[Document]:
     # Use to_list(length=None) to retrieve all documents from the cursor
     cursor = documents_collection.find().sort("creation_date", -1)
     docs = await cursor.to_list(length=None)
+    # This will throw a Pydantic ValidationError if any documents are invalid
+    # TODO: Handle this error gracefully, ignore invalid documents and log them
     return [Document(**doc) for doc in docs]
 
 async def get_document_service(document_id: UUID) -> Document:
