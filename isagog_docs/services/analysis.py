@@ -84,7 +84,7 @@ async def analysis_pipeline_factory() -> Pipeline:
     p.connect("doc_content", "situations")  
     return p
 
-async def start_analysis_service(document_id: UUID) -> AnalysisResponse:
+async def start_analysis_service(document_id: UUID) -> Document:
     """
     Initiates an analysis process for a given document in MongoDB.
     This is a placeholder for a real analysis job.
@@ -100,7 +100,7 @@ async def start_analysis_service(document_id: UUID) -> AnalysisResponse:
         raise HTTPException(status_code=404, detail="Document not found")
 
     # Check if analysis is already pending for this document
-    if document.get("status") == "submitted":
+    if document["status"] == "submitted":
         raise HTTPException(status_code=409, detail="Analysis already in progress for this document.")
     
     target_file_path = Path(settings.UPLOAD_DIR) / document["file_path"]
@@ -141,26 +141,25 @@ async def start_analysis_service(document_id: UUID) -> AnalysisResponse:
             dict(entity_tuple) for entity_tuple in _unique_entities
         ]
 
-        _status = "completed"
+        document.update(analysis=_analysis, status="completed")
         
     except Exception as e:
-        _analysis = None
-        _status = "failed"
+        document.update(analysis=None, status="failed")
         logger.error(f"Failed to analyze document: {e}", stack_info=True)
     
     finally:
         # Update the analysis record in MongoDB
         await analysis_collection.update_one(
             {"_id": document_id},
-            {"$set": {"status": _status, "analysis": _analysis}}
+            {"$set": {"status": document["status"], "analysis": document["analysis"]}}
         )
     
-    if _status == "failed":
+    if document["status"] == "failed":
         raise HTTPException(status_code=408, detail=f"Analysis failed for document {document_id}")
+    
+    return Document(**document)
 
-    return Document(_id=str(document_id), status=_status, analysis=_analysis)
-
-async def get_analysis_service(document_id: UUID) -> AnalysisResponse:
+async def get_analysis_service(document_id: UUID) -> Document:
     """
     Retrieves the analysis status and results for a document from MongoDB.
     """
@@ -175,48 +174,9 @@ async def get_analysis_service(document_id: UUID) -> AnalysisResponse:
     
     return Document(**document)
 
-async def commit_analysis_service(document_id: UUID, commit_data: AnalysisCommit) -> AnalysisResponse:
+async def commit_analysis_service(document_id: UUID, edited_document: Document) -> Document:
     """
     Commits (approves/rejects) the analysis results for a document in MongoDB.
     This also updates the analysis status to 'completed' or 'reviewed'.
     """
-    raise NotImplementedError
-    
-    # analysis_collection = get_analysis_collection()
-    
-    # existing_analysis_doc = await analysis_collection.find_one({"document_id": str(document_id)})
-    # if not existing_analysis_doc:
-    #     raise HTTPException(status_code=404, detail="Analysis not found for this document.")
-
-    # analysis_data = AnalysisResponse(**existing_analysis_doc)
-
-    # update_fields = {}
-    # if analysis_data.status == "pending":
-    #     update_fields["status"] = "completed" if commit_data.is_approved else "reviewed"
-    #     update_fields["last_updated"] = datetime.utcnow()
-    #     if not analysis_data.result:
-    #          # Simulate completing the analysis with some dummy data if pending
-    #          update_fields["result"] = AnalysisResult(
-    #              extracted_text=f"Sample extracted text for document {document_id}",
-    #              keywords=["sample", "document", "analysis"],
-    #              summary="This is a sample summary generated after analysis.",
-    #              analysis_date=datetime.utcnow()
-    #          ).model_dump() # Convert Pydantic model to dict for MongoDB
-
-    # else:
-    #     # If analysis was already completed, just update review notes or similar
-    #     update_fields["status"] = "reviewed"
-    #     update_fields["last_updated"] = datetime.utcnow()
-    
-    # # Update the analysis record in MongoDB
-    # result = await analysis_collection.update_one(
-    #     {"document_id": str(document_id)},
-    #     {"$set": update_fields}
-    # )
-
-    # if result.matched_count == 0:
-    #     raise HTTPException(status_code=404, detail="Analysis record not found for update.")
-    
-    # # Retrieve the updated analysis record to return
-    # updated_analysis_doc = await analysis_collection.find_one({"document_id": str(document_id)})
-    # return AnalysisResponse(**updated_analysis_doc)
+    raise HTTPException(status_code=501, detail=f"Method not yet implemented")

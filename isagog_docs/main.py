@@ -51,9 +51,9 @@ app.add_middleware(
 # Include the main API router
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
-@app.get("/", tags=["Root"])
+@app.get("/", tags=["Health"])
 async def root():
-    """Root endpoint to return the API documentation."""
+    """Endpoint to return the API version."""
     return {
         "message": settings.PROJECT_DESCRIPTION,
         "version": settings.PROJECT_VERSION,
