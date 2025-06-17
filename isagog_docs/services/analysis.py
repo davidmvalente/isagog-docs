@@ -141,7 +141,7 @@ async def start_analysis_service(document_id: UUID) -> Document:
             dict(entity_tuple) for entity_tuple in _unique_entities
         ]
 
-        document.update(analysis=_analysis, status="completed")
+        document.update(analysis=_analysis, status="completed"))
         
     except Exception as e:
         document.update(analysis=None, status="failed")
@@ -151,7 +151,9 @@ async def start_analysis_service(document_id: UUID) -> Document:
         # Update the analysis record in MongoDB
         await analysis_collection.update_one(
             {"_id": document_id},
-            {"$set": {"status": document["status"], "analysis": document["analysis"]}}
+            {"$set": {"status": document["status"], 
+                      "analysis": document["analysis"], 
+                      "updated_at": datetime.utcnow()}}
         )
     
     if document["status"] == "failed":
