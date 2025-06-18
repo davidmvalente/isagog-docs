@@ -16,6 +16,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 from isagog_docs.core.config import settings
+from isagog_docs.core.logging import LOGGING_CONFIG
 from isagog_docs.core.database import connect_to_mongo, close_mongo_connection, get_database
 from isagog_docs.api import api_router # Import the combined API router
 
@@ -79,4 +80,9 @@ async def health_check():
     }
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+    uvicorn.run(app, 
+                host = settings.APP_HOST, 
+                port = settings.APP_PORT, 
+                log_config = LOGGING_CONFIG
+            )

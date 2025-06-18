@@ -41,6 +41,9 @@ class Config:
         self.PROJECT_DESCRIPTION = metadata["description"]
         self.PROJECT_VERSION = metadata["version"]
         self.API_V1_STR = "/api/v1"
+        self.APP_HOST = os.getenv("APP_HOST", "0.0.0.0")
+        self.APP_PORT = int(os.getenv("APP_PORT", "8000")) 
+        self.APP_WORKERS = int(os.getenv("APP_WORKERS", "4"))
 
         # Directories and limits
         self.UPLOAD_DIR = Path(os.getenv("UPLOAD_DIR", "/app/uploads"))

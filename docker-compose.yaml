@@ -5,12 +5,17 @@ services:
       args:
         - GITHUB_TOKEN=${GITHUB_TOKEN}
     image: registry.isagog.ai/isagog-docs:0.1.1
-    command: ["uvicorn", "isagog_docs.main:app", "--host", "0.0.0.0", "--port", "8000"]    
+    # dev command: ["uvicorn", "isagog_docs.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]    
+    # prod
+    command: ["poetry", "run", "python", "start.py"]
     ports:
       - "16002:8000"
     volumes:
       - ./uploads:/app/uploads
     environment:
+      - APP_HOST=0.0.0.0
+      - APP_PORT=8000
+      - APP_WORKERS=4
       - MONGO_URI=mongodb://admin:admin@mongo:27017/
       - MONGO_DB=dev
       - MONGO_COLLECTION=docs
