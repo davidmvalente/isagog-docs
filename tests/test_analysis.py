@@ -5,6 +5,8 @@ from unittest.mock import AsyncMock
 from fastapi import status
 
 # Struttura base dei test per gli endpoints di analisi
+# Deprecato, utilizzare api/test_analysis.py
+
 @pytest.mark.anyio
 class TestAnalysisEndpoints:
     async def test_start_analysis_valid_document(
