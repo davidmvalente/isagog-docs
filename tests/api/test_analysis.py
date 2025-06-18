@@ -19,7 +19,7 @@ async def async_client():
 @pytest.fixture
 def mock_db():
     """Mock MongoDB connection"""
-    with patch('isagog_docs.services.analysis.get_database') as mock:
+    with patch('isagog_docs.core.database.get_database') as mock:
         yield mock
 
 class TestAnalysisStart:

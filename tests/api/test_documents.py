@@ -13,7 +13,7 @@ from isagog_docs.core.config import settings
 @pytest.fixture
 def mock_db():
     """Mock MongoDB connection"""
-    with patch('isagog_docs.services.documents.get_database') as mock:
+    with patch('isagog_docs.core.database.get_database') as mock:
         yield mock
 
 @pytest.fixture
