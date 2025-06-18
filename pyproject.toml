@@ -14,6 +14,8 @@ version = "0.1.3"
 description = "Isagog Documents Management API"
 
 [tool.poetry.dependencies]
+pytest = "^8.4.0"
+trio = "^0.22.0"
 python = "^3.11"
 fastapi = "^0.115.12"
 uvicorn = "^0.34.3"
