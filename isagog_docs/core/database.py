@@ -28,7 +28,7 @@ async def connect_to_mongo():
         # Use standard UUID representation for _id
         client = AsyncMongoClient(settings.MONGO_URI, uuidRepresentation='standard')
         # Select the database specified in settings
-        db = client[settings.MONGO_DB_NAME]
+        db = client[settings.MONGO_DB]
         
         # Ping the database to verify connection
         await db.command('ping')
@@ -61,11 +61,11 @@ def get_documents_collection() -> Collection:
     """
     Returns the 'documents' collection from the MongoDB database.
     """
-    return get_database().get_collection(settings.MONGO_COLLECTION_NAME)
+    return get_database().get_collection(settings.MONGO_COLLECTION)
 
 def get_analysis_collection() -> Collection:
     """
     Returns the 'analysis' collection from the MongoDB database, 
     which is the same collection of the documents.
     """
-    return get_database().get_collection(settings.MONGO_COLLECTION_NAME)
+    return get_database().get_collection(settings.MONGO_COLLECTION)

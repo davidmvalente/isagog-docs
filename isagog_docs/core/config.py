@@ -49,8 +49,8 @@ class Config:
 
         # MongoDB
         self.MONGO_URI = secret_or_env("MONGO_URI", _raise=True)
-        self.MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "dev")
-        self.MONGO_COLLECTION_NAME = os.getenv("MONGO_COLLECTION_NAME", "docs")
+        self.MONGO_DB = os.getenv("MONGO_DB", "dev")
+        self.MONGO_COLLECTION = os.getenv("MONGO_COLLECTION", "docs")
 
         # OpenRouter
         self.OPENROUTER_API_KEY = secret_or_env("OPENROUTER_API_KEY", _raise=True)

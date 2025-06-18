@@ -12,8 +12,9 @@ services:
       - ./uploads:/app/uploads
     environment:
       - MONGO_URI=mongodb://admin:admin@mongo:27017/
-      - MONGODB_DB_NAME=dev
-      - MONGODB_COLLECTION_NAME=docs
+      - MONGO_DB=dev
+      - MONGO_COLLECTION=docs
+      - OPENROUTER_MODEL=google/gemini-2.0-flash-001
       - UPLOAD_DIR=/app/uploads
     secrets:
       - OPENROUTER_API_KEY
