@@ -10,9 +10,19 @@ from uuid import UUID
 
 from isagog_docs.schemas.analysis import AnalysisCommit
 from isagog_docs.schemas.document import Document
-from isagog_docs.services import analysis as analysis_service
+from isagog_docs.services.analysis import AnalysisService
 
 router = APIRouter(prefix="/documents/{document_id}/analysis")
+
+# Singleton service instance
+service = AnalysisService()
+
+# def get_analysis_service() -> DocumentAnalysisService:
+#     """Get singleton instance of DocumentAnalysisService."""
+#     global _analysis_service
+#     if _analysis_service is None:
+#         _analysis_service = DocumentAnalysisService()
+#     return _analysis_service
 
 @router.post("/", status_code=201, response_model=Document, tags=["Analysis"])
 async def start_analysis(document_id: UUID):
@@ -22,7 +32,7 @@ async def start_analysis(document_id: UUID):
     Initiates an asynchronous analysis process for the specified document.
     Returns the initial status of the analysis.
     """
-    return await analysis_service.start_analysis_service(document_id)
+    return await service.start_analysis(document_id)
 
 @router.get("/", response_model=Document, tags=["Analysis"])
 async def get_analysis(document_id: UUID):
@@ -31,7 +41,7 @@ async def get_analysis(document_id: UUID):
 
     Retrieves the current status and results of the analysis for a document.
     """
-    return await analysis_service.get_analysis_service(document_id)
+    return await service.get_analysis(document_id)
 
 @router.put("/", response_model=Document, tags=["Analysis"])
 async def commit_analysis(document_id: UUID, commit_data: AnalysisCommit):
@@ -40,4 +50,4 @@ async def commit_analysis(document_id: UUID, commit_data: AnalysisCommit):
 
     Allows a user to commit (e.g., approve or reject) the results of a document analysis.
     """
-    return await analysis_service.commit_analysis_service(document_id, commit_data)
+    return await service.commit_analysis(document_id, commit_data)

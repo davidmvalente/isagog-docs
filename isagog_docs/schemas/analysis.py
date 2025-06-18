@@ -30,3 +30,7 @@ class AnalysisCommit(BaseModel):
     notes: Optional[str] = Field(None, description="Optional notes from the user regarding the analysis")
     # You might also include fields from AnalysisResult if the user can modify them before committing
     # e.g., modified_extracted_text: Optional[str] = None
+
+class AnalysisError(Exception):
+    """Custom exception for analysis-related errors."""
+    pass
