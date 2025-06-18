@@ -7,6 +7,7 @@ from fastapi import status
 from isagog_docs.core.config import settings
 
 # Struttura base dei test per gli endpoints dei documenti
+# Deprecato, utilizzare api/test_documents.py
 
 @pytest.mark.anyio
 class TestDocumentEndpoints:
