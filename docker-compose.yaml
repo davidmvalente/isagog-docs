@@ -11,7 +11,7 @@ services:
     volumes:
       - ./uploads:/app/uploads
     environment:
-      - MONGODB_URI=mongodb://admin:admin@mongo:27017/
+      - MONGO_URI=mongodb://admin:admin@mongo:27017/
       - MONGODB_DB_NAME=dev
       - MONGODB_COLLECTION_NAME=docs
       - UPLOAD_DIR=/app/uploads
