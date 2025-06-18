@@ -8,6 +8,7 @@ These endpoints interact with the analysis service.
 from fastapi import APIRouter, HTTPException
 from uuid import UUID
 
+from isagog_docs.core.database import get_analysis_collection
 from isagog_docs.schemas.analysis import AnalysisCommit
 from isagog_docs.schemas.document import Document
 from isagog_docs.services.analysis import AnalysisService
@@ -15,14 +16,14 @@ from isagog_docs.services.analysis import AnalysisService
 router = APIRouter(prefix="/documents/{document_id}/analysis")
 
 # Singleton service instance
-service = AnalysisService()
+service = None
 
-# def get_analysis_service() -> DocumentAnalysisService:
-#     """Get singleton instance of DocumentAnalysisService."""
-#     global _analysis_service
-#     if _analysis_service is None:
-#         _analysis_service = DocumentAnalysisService()
-#     return _analysis_service
+def get_analysis_service() -> AnalysisService:
+    """Get singleton instance of DocumentAnalysisService."""
+    global _analysis_service
+    if _analysis_service is None:
+        _analysis_service = AnalysisService(collection = get_analysis_collection())
+    return _analysis_service
 
 @router.post("/", status_code=201, response_model=Document, tags=["Analysis"])
 async def start_analysis(document_id: UUID):
