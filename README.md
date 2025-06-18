@@ -65,7 +65,7 @@ db.createRole(
         privileges: [
             {
                 resource: { db: "isagog", collection: "docs" },
-                actions: ["find", "insert", "update", "delete"]
+                                actions: ["find", "insert", "update", "remove"]
             }
         ],
         roles: []
