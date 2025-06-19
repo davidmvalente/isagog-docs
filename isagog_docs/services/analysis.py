@@ -221,7 +221,7 @@ class AnalysisService:
         """Update document status in the database."""
         await self.analysis_collection.update_one(
             {"_id": document_id},
-            {"$set": {"status": str, 
+            {"$set": {"status": status, 
                       "updated_at": datetime.utcnow()}}
         )
     
