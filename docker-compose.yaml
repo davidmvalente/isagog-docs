@@ -33,6 +33,8 @@ services:
   mongo:
     image: mongo:latest
     restart: unless-stopped
+    ports:
+      - "16003:27017"
     volumes:
       - /sata/isagog-docs/mongo/data:/data/db
     command: [--auth]
