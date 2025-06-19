@@ -58,6 +58,3 @@ class Config:
         # OpenRouter
         self.OPENROUTER_API_KEY = secret_or_env("OPENROUTER_API_KEY", _raise=True)
         self.OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o")
-
-# Singleton config instance
-settings = Config()

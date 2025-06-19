@@ -22,7 +22,6 @@ from isagog.components.readers.file_reader import FileReader
 from isagog.components.analyzers.concept_analyzer import ConceptAnalyzer  
 from isagog.components.analyzers.situation_analyzer import SituationAnalyzer
 
-from isagog_docs.core.config import settings
 from isagog_docs.schemas.document import Document
 from isagog_docs.schemas.analysis import AnalysisResponse, AnalysisResult, AnalysisCommit
 
