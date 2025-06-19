@@ -5,8 +5,6 @@ import os
 from isagog_docs.core.config import settings
 from isagog_docs.core.logging import LOGGING_CONFIG
 
-# 
-
 
 # Override settings for development
 settings.MONGO_DB = "dev"

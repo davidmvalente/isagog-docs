@@ -4,11 +4,9 @@ app/services/analysis.py
 Contains business logic for document analysis operations and upload to MongoDB.
 """
 import logging
-from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple, Any
+from typing import Dict, List, Set, Tuple, Any
 from uuid import UUID
-from datetime import datetime
 
 from fastapi import HTTPException
 from pymongo.collection import Collection
@@ -16,15 +14,13 @@ from haystack import Pipeline, component
 from haystack import Document as HaystackDocument
 from haystack.components.preprocessors import DocumentCleaner
 
-
-
 from isagog.components.proxy.openrouter_proxy import OpenRouterProxy
 from isagog.components.readers.file_reader import FileReader
 from isagog.components.analyzers.concept_analyzer import ConceptAnalyzer  
 from isagog.components.analyzers.situation_analyzer import SituationAnalyzer
 
+from isagog_docs.core.config import Config
 from isagog_docs.schemas.document import Document
-from isagog_docs.schemas.analysis import AnalysisResponse, AnalysisResult, AnalysisCommit
 
 logger = logging.getLogger(__name__)
 
@@ -44,12 +40,13 @@ class DocumentToString:
 class AnalysisPipelineBuilder:
     """Builder class for creating analysis pipelines."""
     
-    def __init__(self):
+    def __init__(self, config: Config):
+        self.config = config
         self.pipeline = Pipeline()
         self._llm_factory = lambda: OpenRouterProxy(
-            api_key=settings.OPENROUTER_API_KEY if settings.OPENROUTER_API_KEY else "",
-            model=settings.OPENROUTER_MODEL,
-            temperature=settings.OPENROUTER_TEMPERATURE,
+            api_key=self.config.OPENROUTER_API_KEY,
+            model=self.config.OPENROUTER_MODEL,
+            temperature=self.config.OPENROUTER_TEMPERATURE,
         )
     
     def build(self) -> Pipeline:
@@ -66,13 +63,13 @@ class AnalysisPipelineBuilder:
             "doc_content": DocumentToString(),
             "relations": ConceptAnalyzer(
                 llm_generator=self._llm_factory(),
-                prompt=settings.CONCEPT_PROMPT,
-                frame=settings.CONCEPT_FRAME
+                prompt=self.config.CONCEPT_PROMPT,
+                frame=self.config.CONCEPT_FRAME
             ),
             "situations": SituationAnalyzer(
                 llm_generator=self._llm_factory(),
-                prompt=settings.SITUATION_PROMPT,
-                frame=settings.SITUATION_FRAME
+                prompt=self.config.SITUATION_PROMPT,
+                frame=self.config.SITUATION_FRAME
             )
         }
         
@@ -95,9 +92,10 @@ class AnalysisPipelineBuilder:
 class AnalysisService:
     """Service class for handling document analysis operations."""
     
-    def __init__(self, collection: Collection):
+    def __init__(self, collection: Collection, config: Config):
         self.analysis_collection = collection
         self.pipeline = AnalysisPipelineBuilder().build()
+        self.config = config
 
     async def start_analysis(self, document_id: UUID) -> Document:
         """
@@ -207,7 +205,7 @@ class AnalysisService:
     
     def _get_file_path(self, document: Dict[str, Any]) -> Path:
         """Get the file path for the document."""
-        return Path(settings.UPLOAD_DIR) / document["file_path"]
+        return Path(self.config.UPLOAD_DIR) / document["file_path"]
     
     def _validate_file_exists(self, file_path: Path) -> None:
         """Validate that the file exists on the filesystem."""
