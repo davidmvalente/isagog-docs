@@ -19,6 +19,8 @@ import uvicorn
 
 from isagog_docs.core.config import Config
 from isagog_docs.core.logging import LOGGING_CONFIG
+from isagog_docs.services.documents import DocumentService
+from isagog_docs.services.analysis import AnalysisService
 from isagog_docs.api import api_router # Import the combined API router
 
 logger = logging.getLogger(__name__)    
@@ -44,6 +46,19 @@ async def lifespan(app: FastAPI):
         raise
 
     app.state.collection = app.state.config.MONGO_COLLECTION
+
+    # Initialise services
+    app.state.document_service = DocumentService(
+        collection = app.state.collection,
+        upload_dir = app.state.config.UPLOAD_DIR,
+        max_file_size_mb = app.state.config.MAX_FILE_SIZE_MB,
+        max_file_size_bytes = app.state.config.MAX_FILE_SIZE_BYTES
+    )
+
+    app.state.analysis_service = AnalysisService(
+        collection = app.state.collection,
+        config = app.state.config
+    )
 
     # Run the application
     yield

@@ -17,19 +17,9 @@ from pathlib import Path
 router = APIRouter(prefix="/documents")
 
 # Singleton service instance
-_service = None
-
 def get_document_service(request: Request) -> DocumentService:
-    """Get singleton instance of DocumentService."""
-    global _analysis_service
-    if _analysis_service is None:
-        _analysis_service = DocumentService(
-            collection = request.app.state.collection,
-            upload_dir = request.app.state.config.UPLOAD_DIR,
-            max_file_size_mb = request.app.state.config.MAX_FILE_SIZE_MB,
-            max_file_size_bytes = request.app.state.config.MAX_FILE_SIZE_BYTES
-        )
-    return _analysis_service
+    """Get singleton instance of DocumentService."""  
+    return request.app.state.document_service
 
 @router.post("/", response_model=Document, status_code=201, tags=["Documents"])
 async def create_document(
