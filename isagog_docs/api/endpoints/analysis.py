@@ -22,7 +22,10 @@ def get_analysis_service(request: Request) -> AnalysisService:
     """Get singleton instance of DocumentAnalysisService."""
     global _analysis_service
     if _analysis_service is None:
-        _analysis_service = AnalysisService(collection = request.app.state.collection)
+        _analysis_service = AnalysisService(
+            collection = request.app.state.collection,
+            config = request.app.state.config
+        )
     return _analysis_service
 
 @router.post("/", status_code=201, response_model=Document, tags=["Analysis"])
