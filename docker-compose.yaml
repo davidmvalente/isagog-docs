@@ -9,7 +9,7 @@ services:
     # prod
     command: ["poetry", "run", "python", "start.py"]
     ports:
-      - "16002:8000"
+      - "16001:8000"
     volumes:
       - /sata/experiments/isagog-docs/uploads:/app/uploads
     environment:

@@ -220,7 +220,9 @@ class AnalysisService:
         """Update document status in the database."""
         await self.analysis_collection.update_one(
             {"_id": document_id},
-            {"$set": {"status": status}}
+            {"$set": {"status": document["status"], 
+                      "analysis": document["analysis"], 
+                      "updated_at": datetime.utcnow()}}
         )
     
     async def _run_analysis_pipeline(self, file_path: Path) -> Dict[str, Any]:
