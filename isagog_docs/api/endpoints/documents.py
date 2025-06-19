@@ -65,23 +65,23 @@ async def get_document(document_id: UUID, service = Depends(get_document_service
     return await service.get_document(document_id)
 
 @router.get("/{document_id}/download", tags=["Documents"])
-async def download_document(document_id: UUID,     service = Depends(get_document_service)):
+async def download_document(document_id: UUID, service = Depends(get_document_service)):
     """
     **Download the file associated with a document.**
 
     Allows users to download the original uploaded file using the document's ID.
     Returns a FileResponse with the correct file_name and MIME type.
     """
-    doc = service.get_service(document_id)
-    file_path = Path(settings.UPLOAD_DIR) / doc["file_path"]
+    doc: Document = await service.get_document(document_id)
+    file_path = Path(settings.UPLOAD_DIR) / doc.file_path
     
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="File not found on disk")
     
     return FileResponse(
         path=str(file_path),
-        file_name=doc["file_name"],
-        media_type=doc["mime_type"]
+        filename=doc.file_name,
+        media_type=doc.mime_type
     )
 
 @router.put("/{document_id}", response_model=Document, tags=["Documents"])
