@@ -7,8 +7,6 @@ import uuid
 from httpx import AsyncClient, ASGITransport
 
 from isagog_docs.main import app
-from isagog_docs.services import documents as document_service
-from isagog_docs.core.config import settings
 
 @pytest.fixture
 def mock_db():

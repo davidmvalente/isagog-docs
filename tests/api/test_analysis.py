@@ -6,8 +6,6 @@ import uuid
 from httpx import AsyncClient, ASGITransport
 
 from isagog_docs.main import app
-from isagog_docs.services import analysis as analysis_service
-from isagog_docs.core.config import settings
 
 @pytest.fixture
 async def async_client():
