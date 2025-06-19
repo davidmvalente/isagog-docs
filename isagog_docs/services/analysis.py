@@ -16,7 +16,8 @@ from haystack import Pipeline, component
 from haystack import Document as HaystackDocument
 from haystack.components.preprocessors import DocumentCleaner
 
-from isagog.components.analyzers.analyzer import Frame
+
+
 from isagog.components.proxy.openrouter_proxy import OpenRouterProxy
 from isagog.components.readers.file_reader import FileReader
 from isagog.components.analyzers.concept_analyzer import ConceptAnalyzer  
@@ -40,55 +41,6 @@ class DocumentToString:
         return {"text": documents[0].content}
 
 
-class FrameFactory:
-    """Factory class for creating analysis frames."""
-    
-    @staticmethod
-    def create_relations_frame() -> Frame:
-        """Create the default frame for entities and relations."""
-        concepts = [
-            "Person", "Organization", "Place", "Event", "Situation", 
-            "Object", "Concept", "Quality", "Date", "Period", "Number"
-        ]
-        
-        relations = [
-            "(Object) is part of (Object)",
-            "(Concept) is a kind of (Concept)", 
-            "(Person) is member of (Organization)",
-            "(Event) takes place in (Place)",
-            "(Object) is located in (Place)",
-            "(Person, Organization) takes part in (Event, Situation)",
-            "(Event) is result of (Event)",
-            "(Object) belongs to (Organization)",
-            "(Concept) refers to (Concept)",
-            "(Person) has quality (Quality)",
-            "(Object) has quality (Quality)",
-            "(Concept) has quality (Quality)",
-            "(Person, Organization, Place, Event, Situation, Object) has quality (Quality)"
-        ]
-        
-        return Frame(
-            name="default",
-            version="0.2", 
-            language="en",
-            description="Default frame for entities and relations",
-            concepts=concepts,
-            relations=relations
-        )
-    
-    @staticmethod
-    def create_situations_frame() -> Frame:
-        """Create Davidson's analysis frame."""
-        return Frame(
-            name="davidson_frame_en",
-            concepts=["Person", "Organization", "Location"],
-            situations=["Event", "Action", "State"],
-            roles=["subject", "object", "agent", "patient", "location"],
-            version="1.0",
-            language="en",
-            description="A frame for Davidson's analysis in English"
-        )
-
 
 class AnalysisPipelineBuilder:
     """Builder class for creating analysis pipelines."""
@@ -96,8 +48,9 @@ class AnalysisPipelineBuilder:
     def __init__(self):
         self.pipeline = Pipeline()
         self._llm_factory = lambda: OpenRouterProxy(
-            api_key=settings.OPENROUTER_API_KEY,
-            model=settings.OPENROUTER_MODEL
+            api_key=settings.OPENROUTER_API_KEY if settings.OPENROUTER_API_KEY else "",
+            model=settings.OPENROUTER_MODEL,
+            temperature=settings.OPENROUTER_TEMPERATURE,
         )
     
     def build(self) -> Pipeline:
@@ -114,11 +67,13 @@ class AnalysisPipelineBuilder:
             "doc_content": DocumentToString(),
             "relations": ConceptAnalyzer(
                 llm_generator=self._llm_factory(),
-                frame=FrameFactory.create_relations_frame()
+                prompt=settings.CONCEPT_PROMPT,
+                frame=settings.CONCEPT_FRAME
             ),
             "situations": SituationAnalyzer(
                 llm_generator=self._llm_factory(),
-                frame=FrameFactory.create_situations_frame()
+                prompt=settings.SITUATION_PROMPT,
+                frame=settings.SITUATION_FRAME
             )
         }
         

@@ -17,7 +17,7 @@ from isagog_docs.services.analysis import AnalysisService
 router = APIRouter(prefix="/documents/{document_id}/analysis")
 
 # Singleton service instance
-Collection: _analysis_service = None
+_analysis_service = None
 
 def get_analysis_service() -> AnalysisService:
     """Get singleton instance of DocumentAnalysisService."""
