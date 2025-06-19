@@ -11,7 +11,7 @@ services:
     ports:
       - "16002:8000"
     volumes:
-      - ./uploads:/app/uploads
+      - /sata/experiments/isagog-docs/uploads:/app/uploads
     environment:
       - APP_HOST=0.0.0.0
       - APP_PORT=8000
@@ -34,7 +34,7 @@ services:
     image: mongo:latest
     restart: unless-stopped
     volumes:
-      - /sata/experiments/mongo/data:/data/db
+      - /sata/isagog-docs/mongo/data:/data/db
     command: [--auth]
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
