@@ -2,13 +2,13 @@
 
 LOGGING_CONFIG = { 
     'version': 1,
-    'disable_existing_loggers': True,
+    'disable_existing_loggers': False,
     'formatters': { 
         'standard': { 
             'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
         },
         'custom_formatter': { 
-            'format': "%(asctime)s [%(processName)s: %(process)d] [%(threadName)s: %(thread)d] [%(levelname)s] %(name)s: %(message)s"
+            'format': "%(asctime)s [_pid: %(process)d] [_tid: %(thread)d] [%(levelname)s] [%(name)s] %(message)s"
             
         },
     },
@@ -39,7 +39,7 @@ LOGGING_CONFIG = {
         },
         'uvicorn.access': {
             'handlers': ['stream_handler', 'file_handler'],
-            'level': 'TRACE',
+            'level': 'DEBUG',
             'propagate': False
         },
         'uvicorn.error': { 
@@ -49,9 +49,12 @@ LOGGING_CONFIG = {
         },
         'uvicorn.asgi': {
             'handlers': ['stream_handler', 'file_handler'],
-            'level': 'TRACE',
+            'level': 'DEBUG',
             'propagate': False
         },
-
+        'root': {
+            'handlers': ['stream_handler', 'file_handler'],
+            'level': 'INFO',
+        },
     },
 }

@@ -39,13 +39,14 @@ async def lifespan(app: FastAPI):
         app.state.db = app.state.client[app.state.config.MONGO_DB]
         await app.state.db.command('ping')
         logger.debug("Connected to MongoDB successfully!")
+        app.state.collection = app.state.db[app.state.config.MONGO_COLLECTION]
+        logger.info(f"Connected to MongoDB collection: {app.state.collection}!")
 
     except Exception as e:
         logger.error(f"Could not connect to MongoDB: {e}")
         # Re-raise the exception to prevent the application from starting
         raise
 
-    app.state.collection = app.state.config.MONGO_COLLECTION
 
     # Initialise services
     app.state.document_service = DocumentService(

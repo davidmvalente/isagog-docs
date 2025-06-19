@@ -30,6 +30,7 @@ class DocumentService:
                  max_file_size_bytes: int):
         
         self.collection = collection
+        logger.info(f"DocumentService initialized with collection: {collection}")
         self.UPLOAD_DIR = upload_dir
         self.MAX_FILE_SIZE_MB = max_file_size_mb
         self.MAX_FILE_SIZE_BYTES = max_file_size_bytes
@@ -242,7 +243,7 @@ class DocumentService:
             List[Document]: List of all documents, newest first
         """
         try:
-            cursor = self.collection.find().sort("creation_date", -1)
+            cursor = self.collection.find({}).sort("creation_date", -1)
             docs = await cursor.to_list(length=None)
             
             # Filter out invalid documents and log them
