@@ -7,6 +7,7 @@ import logging
 from pathlib import Path
 from typing import Dict, List, Set, Tuple, Any
 from uuid import UUID
+from datetime import datetime
 
 from fastapi import HTTPException
 from pymongo.collection import Collection
@@ -220,8 +221,7 @@ class AnalysisService:
         """Update document status in the database."""
         await self.analysis_collection.update_one(
             {"_id": document_id},
-            {"$set": {"status": document["status"], 
-                      "analysis": document["analysis"], 
+            {"$set": {"status": str, 
                       "updated_at": datetime.utcnow()}}
         )
     

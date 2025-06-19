@@ -1,6 +1,6 @@
 [project]
 name = "isagog-docs"
-version = "0.1.4"
+version = "0.1.4.1"
 description = ""
 authors = [
     {name = "David Valente",email = "d.valente@isagog.com"}
@@ -10,7 +10,7 @@ requires-python = ">=3.11"
 
 [tool.poetry]
 name = "isagog-docs"
-version = "0.1.4"
+version = "0.1.4.1"
 description = "Isagog Documents Management API"
 
 [tool.poetry.dependencies]
