@@ -37,7 +37,7 @@ async def create_document(
     The file is saved to the configured upload directory, and a document record
     is created in the database.
     """
-    return await service.create_service(
+    return await service.create_document(
         file=file,
         title=title,
         author=author,
