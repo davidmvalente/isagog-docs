@@ -294,6 +294,3 @@ class Config:
         self.CONCEPT_FRAME = _MAXXI_CONCEPT_FRAME_IT
         self.SITUATION_PROMPT = _SITUATION_PROMPT_IT
         self.SITUATION_FRAME = _SITUATIION_FRAME_IT
-
-# Singleton config instance
-settings = Config()

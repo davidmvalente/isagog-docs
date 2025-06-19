@@ -11,7 +11,7 @@ from uuid import UUID
 
 from isagog_docs.schemas.document import Document, DocumentUpdate
 from isagog_docs.services.documents import DocumentService
-from isagog_docs.core.config import settings
+from isagog_docs.core.config import Config
 from pathlib import Path
 
 router = APIRouter(prefix="/documents")
@@ -20,6 +20,10 @@ router = APIRouter(prefix="/documents")
 def get_document_service(request: Request) -> DocumentService:
     """Get singleton instance of DocumentService."""  
     return request.app.state.document_service
+
+def get_app_config(request: Request) -> Config:
+    """Get singleton instance of Config."""  
+    return request.app.state.config
 
 @router.post("/", response_model=Document, status_code=201, tags=["Documents"])
 async def create_document(
@@ -65,7 +69,9 @@ async def get_document(document_id: UUID, service = Depends(get_document_service
     return await service.get_document(document_id)
 
 @router.get("/{document_id}/download", tags=["Documents"])
-async def download_document(document_id: UUID, service = Depends(get_document_service)):
+async def download_document(document_id: UUID, 
+                            service = Depends(get_document_service),
+                            settings = Depends(get_app_config)):
     """
     **Download the file associated with a document.**
 

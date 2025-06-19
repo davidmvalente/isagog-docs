@@ -2,11 +2,13 @@
 import uvicorn
 import os
 
-from isagog_docs.core.config import settings
+from isagog_docs.core.config import Config
 from isagog_docs.core.logging import LOGGING_CONFIG
 
 
 # Override settings for development
+settings = Config()
+
 settings.MONGO_DB = "dev"
 settings.MONGO_COLLECTION = "dev-collection" 
 settings.OPENROUTER_MODEL = "google/gemini-2.0-flash-001"
