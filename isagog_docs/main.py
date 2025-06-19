@@ -6,30 +6,71 @@ It initializes the FastAPI application, adds CORS middleware, and includes
 the API routers for documents and analysis.
 
 """
-from contextlib import asynccontextmanager
 import os
+import logging
 from pathlib import Path
 from datetime import datetime
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from pymongo import AsyncMongoClient
 import uvicorn
 
-from isagog_docs.core.config import settings
-from isagog_docs.core.database import connect_to_mongo, close_mongo_connection, get_database
+from isagog_docs.core.config import Config
+from isagog_docs.core.logging import LOGGING_CONFIG
+from isagog_docs.services.documents import DocumentService
+from isagog_docs.services.analysis import AnalysisService
 from isagog_docs.api import api_router # Import the combined API router
+
+logger = logging.getLogger(__name__)    
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Ensure the UPLOAD_DIR exists
-    Path(settings.UPLOAD_DIR).mkdir(parents=True, exist_ok=True)
-    # Load settings
-    # Create database connection on a global "client" object
-    await connect_to_mongo()
-    yield
-    # Clean up the connection
-    await close_mongo_connection()
+    # Re-load settings
+    app.state.config = Config()
 
+    # Make sure upload directory exists
+    Path(app.state.config.UPLOAD_DIR).mkdir(parents=True, exist_ok=True)
+
+    # Initialise to MongoDB
+    try:
+        app.state.client = AsyncMongoClient(app.state.config.MONGO_URI, uuidRepresentation='standard')
+        app.state.db = app.state.client[app.state.config.MONGO_DB]
+        await app.state.db.command('ping')
+        logger.debug("Connected to MongoDB successfully!")
+        app.state.collection = app.state.db[app.state.config.MONGO_COLLECTION]
+        logger.info(f"Connected to MongoDB collection: {app.state.collection}!")
+
+    except Exception as e:
+        logger.error(f"Could not connect to MongoDB: {e}")
+        # Re-raise the exception to prevent the application from starting
+        raise
+
+
+    # Initialise services
+    app.state.document_service = DocumentService(
+        collection = app.state.collection,
+        upload_dir = app.state.config.UPLOAD_DIR,
+        max_file_size_mb = app.state.config.MAX_FILE_SIZE_MB,
+        max_file_size_bytes = app.state.config.MAX_FILE_SIZE_BYTES
+    )
+
+    app.state.analysis_service = AnalysisService(
+        collection = app.state.collection,
+        config = app.state.config
+    )
+
+    # Run the application
+    yield
+
+    # Clean up the connection
+    if app.state.client:
+        await app.state.client.close()
+        logger.info("Closed MongoDB connection successfully.")
+
+
+settings = Config()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -67,7 +108,7 @@ async def health_check():
     # In a real application, you'd check MongoDB connection here
     # from app.core.database import get_database
     try:
-        mongo_ok = get_database() is not None
+        mongo_ok = app.state.db is not None
     except Exception:
         mongo_ok = False
     
@@ -79,4 +120,9 @@ async def health_check():
     }
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+    uvicorn.run(app, 
+                host = settings.APP_HOST, 
+                port = settings.APP_PORT, 
+                log_config = LOGGING_CONFIG
+            )

@@ -4,16 +4,22 @@ services:
       context: .
       args:
         - GITHUB_TOKEN=${GITHUB_TOKEN}
-    image: registry.isagog.ai/isagog-docs:0.1.1
-    command: ["uvicorn", "isagog_docs.main:app", "--host", "0.0.0.0", "--port", "8000"]    
+    image: registry.isagog.ai/isagog-docs:0.1.3
+    # dev command: ["uvicorn", "isagog_docs.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]    
+    # prod
+    command: ["poetry", "run", "python", "start.py"]
     ports:
       - "16001:8000"
     volumes:
-      - ./uploads:/app/uploads
+      - /sata/experiments/isagog-docs/uploads:/app/uploads
     environment:
-      - MONGODB_URI=mongodb://admin:admin@mongo:27017/
-      - MONGODB_DB_NAME=dev
-      - MONGODB_COLLECTION_NAME=docs
+      - APP_HOST=0.0.0.0
+      - APP_PORT=8000
+      - APP_WORKERS=4
+      - MONGO_URI=mongodb://admin:admin@mongo:27017/
+      - MONGO_DB=dev
+      - MONGO_COLLECTION=docs
+      - OPENROUTER_MODEL=google/gemini-2.0-flash-001
       - UPLOAD_DIR=/app/uploads
     secrets:
       - OPENROUTER_API_KEY
@@ -30,7 +36,7 @@ services:
     ports:
       - "16003:27017"
     volumes:
-      - /sata/experiments/mongo/data:/data/db
+      - /sata/isagog-docs/mongo/data:/data/db
     command: [--auth]
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin

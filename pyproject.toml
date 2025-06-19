@@ -1,6 +1,6 @@
 [project]
 name = "isagog-docs"
-version = "0.1.2"
+version = "0.1.4"
 description = ""
 authors = [
     {name = "David Valente",email = "d.valente@isagog.com"}
@@ -10,10 +10,12 @@ requires-python = ">=3.11"
 
 [tool.poetry]
 name = "isagog-docs"
-version = "0.1.2"
+version = "0.1.4"
 description = "Isagog Documents Management API"
 
 [tool.poetry.dependencies]
+pytest = "^8.4.0"
+trio = "^0.22.0"
 python = "^3.11"
 fastapi = "^0.115.12"
 uvicorn = "^0.34.3"

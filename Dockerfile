@@ -29,4 +29,6 @@ RUN poetry install --no-interaction --no-ansi --no-root
 # Copy application code
 COPY isagog_docs /app/isagog_docs
 
+COPY start.py /app/start.py
+
 
