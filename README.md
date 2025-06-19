@@ -25,20 +25,32 @@ This is a simple API for managing documents and their associated analysis.
 
 - Python 3.11
 - Poetry
-- Docker
-
-
+- (Optional) Docker
 
 ### Setup
 
 1. Clone the repository
 2. Install dependencies with `poetry install`
+3. Setup a tunnel to the MongoDB database, if not using Docker
+
+```
+ssh -L 16003:localhost:16003 isagog
+```
+
+### Run 
+
+```
+poetry run uvicorn isagog_docs.main:app --reload
+```
+
+
+## Production
 
 ### Docker build
 
 1. Build the Docker image with `docker build -t isagog-docs .`
 
-### Create mongodb database and unprivileged user
+### (Optional) Create mongodb database and unprivileged user
 
 1. Create a new database named `isagog` with `mongodb`
 2. Create a new user named `isagog` with `mongodb`
@@ -71,4 +83,12 @@ db.createRole(
         roles: []
     }
 )
+```
+
+### Start
+
+Start all services.
+
+```
+docker compose up -d
 ```
