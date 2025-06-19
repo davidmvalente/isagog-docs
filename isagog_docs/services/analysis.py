@@ -94,8 +94,8 @@ class AnalysisService:
     
     def __init__(self, collection: Collection, config: Config):
         self.analysis_collection = collection
-        self.pipeline = AnalysisPipelineBuilder().build()
         self.config = config
+        self.pipeline = AnalysisPipelineBuilder(config).build()
 
     async def start_analysis(self, document_id: UUID) -> Document:
         """

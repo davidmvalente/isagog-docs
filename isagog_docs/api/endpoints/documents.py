@@ -53,7 +53,7 @@ async def list_documents(service = Depends(get_document_service)):
     Retrieves a list of all documents currently stored in the database,
     sorted by creation date (newest first).
     """
-    return await service.get_all_documents_service()
+    return await service.get_all_documents()
 
 @router.get("/{document_id}", response_model=Document, tags=["Documents"])
 async def get_document(document_id: UUID, service = Depends(get_document_service)):
@@ -62,7 +62,7 @@ async def get_document(document_id: UUID, service = Depends(get_document_service
 
     Retrieves the full metadata for a single document using its unique ID.
     """
-    return await service.get_service(document_id)
+    return await service.get_document(document_id)
 
 @router.get("/{document_id}/download", tags=["Documents"])
 async def download_document(document_id: UUID,     service = Depends(get_document_service)):
@@ -92,7 +92,7 @@ async def update_document(document_id: UUID, document_update: DocumentUpdate, se
     Allows updating existing metadata for a document, such as its title,
     description, author, or tags. The associated file is not modified.
     """
-    return await service.update_service(document_id, document_update)
+    return await service.update_document(document_id, document_update)
 
 @router.delete("/{document_id}", status_code=204, tags=["Documents"])
 async def delete_document(document_id: UUID, service = Depends(get_document_service)):
@@ -102,5 +102,5 @@ async def delete_document(document_id: UUID, service = Depends(get_document_serv
     Removes a document record from the database and permanently deletes
     its corresponding file from the filesystem.
     """
-    await service.delete_service(document_id)
+    await service.delete_document(document_id)
     return None
