@@ -4,7 +4,7 @@ services:
       context: .
       args:
         - GITHUB_TOKEN=${GITHUB_TOKEN}
-    image: registry.isagog.ai/isagog-docs:0.1.3
+    image: registry.isagog.ai/isagog-docs:0.1.4.1
     # dev command: ["uvicorn", "isagog_docs.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]    
     # prod
     command: ["poetry", "run", "python", "start.py"]
