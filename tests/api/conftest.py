@@ -19,11 +19,13 @@ def setup_db():
     yield
     collection.delete_many({})
 
+from httpx import ASGITransport
+
 @pytest.fixture
 async def async_client():
     """Async test client fixture"""
-    async with AsyncClient(app=app, 
-                           base_url="http://localhost:8000") as ac:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://localhost:8000") as ac:
         yield ac
 
 @pytest.fixture
